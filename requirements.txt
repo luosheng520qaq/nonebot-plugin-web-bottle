@@ -1,0 +1,7 @@
+sqlite3
+aiofiles
+asyncio
+fastapi
+pydantic
+base64
+httpx
