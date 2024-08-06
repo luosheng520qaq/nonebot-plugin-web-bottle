@@ -1,0 +1,2 @@
+# nonebot_plugin_web_bottle
+基于nonebot2开发的带web审核的漂流瓶插件，持续更新咕咕咕
