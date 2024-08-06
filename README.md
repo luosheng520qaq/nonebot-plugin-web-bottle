@@ -1,7 +1,10 @@
 # 这是什么？
 一个基于nonebot2与onebotv11 使用fastapi驱动的漂流瓶插件，有一个简单的web用于审核用户提交的漂流瓶
 # 如何安装？
-下载整个仓库，将其解压到你的Bot主目录，并在pyproject.toml文件中修改为如下配置plugin_dirs = ["plugins"]。
+下载整个仓库，将其解压到你的Bot主目录，并在pyproject.toml文件中修改为如下配置
+```
+plugin_dirs = ["plugins"]。
+```
 本插件使用的相关第三方库在requirements.txt中，你可以在解压后在bot主目录运行以下指令即可
 ```
 pip install -r requirements.txt
