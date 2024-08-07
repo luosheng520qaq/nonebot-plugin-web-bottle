@@ -8,6 +8,8 @@ import base64
 from .web_bottle import Bottle, id_add,serialize_message
 import re
 from datetime import datetime, timedelta
+
+
 __plugin_meta__ = PluginMetadata(
     name="漂流瓶",
     description="一个基于nonebot2与onebotv11 使用fastapi驱动的漂流瓶插件，有一个简单的web用于审核用户提交的漂流瓶",
@@ -60,15 +62,26 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
         else:
             await read_bottle.finish("发生未知错误！")
     img_bytes_list = await bottle.get_bottle_images(b['id'])
+    j = await bot.call_api(api="get_stranger_info", **{
+        'user_id': int(b['userid'])
+    })
+
+    n = await bot.call_api(api="get_group_info", **{
+        'group_id': int(b['groupid'])
+    })
+
+    sender_nickname = j['nickname']
+    group_name = n['group_name']
 
     # 创建消息段
     message = Message(
         f"捡到漂流瓶id：{b['id']}\n"
         f"内容：{b['content']}\n"
-        f"发送者：{b['userid']}\n"
-        f"发送群：{b['groupid']}\n"
+        f"发送者：{sender_nickname}\n"
+        f"发送群：{group_name}\n"
         f"发送时间：{b['timeinfo']}\n"
     )
+
 
     # 添加图片到消息中
     for img_bytes in img_bytes_list:
@@ -79,6 +92,10 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
         # 将图片添加到消息中
         message += img_segment
     comments = await bottle.get_comments(int(b['id']))
+
+    # 初始化新的字符串
+    formatted_comments = ""
+
     # 分割字符串以获取每条评论
     comment_lines = comments.split('\n')
 
@@ -88,26 +105,25 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
         id_and_comment = line.split(': ')
         if len(id_and_comment) == 2:
             user_id, comment = id_and_comment[0], ': '.join(id_and_comment[1:])
-
             try:
                 # 调用 API 获取用户信息
-                j = await bot.call_api("get_group_member_info", **{
-                    'group_id': event.group_id,
+                j = await bot.call_api("get_stranger_info", **{
                     'user_id': int(user_id)
                 })
 
-                # 获取成员的名片或姓名
-                name = j.get('card', j.get('nickname', '未知昵称'))
+                # 获取成员的昵称
+                name = j.get('nickname', '未知昵称')
 
-                # 输出结果
-                print(f"{name}: {comment}")
+                # 构造昵称和评论的格式化字符串并添加到 formatted_comments 中
+                formatted_comments += f"{name}: {comment}\n"
             except Exception as e:
                 # 如果 API 调用失败，则使用默认昵称
-                print(f"未知昵称: {comment}")
+                formatted_comments += f"未知昵称: {comment}\n"
+    message += Message(formatted_comments)
 
-    message += comments
     # 发送消息
     await read_bottle.finish(message)
+
 
 
 @comment.handle()
@@ -149,12 +165,22 @@ async def _(bot: Bot, event: GroupMessageEvent):
         await get_bottle.finish("捞瓶子失败，没有漂流瓶~")
     img_bytes_list = await bottle.get_bottle_images(bottle_data['id'])
 
+    j = await bot.call_api(api="get_stranger_info", **{
+        'user_id': int(bottle_data['userid'])
+    })
+
+    n = await bot.call_api(api="get_group_info", **{
+        'group_id': int(bottle_data['groupid'])
+    })
+
+    sender_nickname = j['nickname']
+    group_name = n['group_name']
     # 创建消息段
     message = Message(
         f"捡到漂流瓶id：{bottle_data['id']}\n"
         f"内容：{bottle_data['content']}\n"
-        f"发送者：{bottle_data['userid']}\n"
-        f"发送群：{bottle_data['groupid']}\n"
+        f"发送者：{sender_nickname}\n"
+        f"发送群：{group_name}\n"
         f"发送时间：{bottle_data['timeinfo']}\n"
     )
 
@@ -167,33 +193,41 @@ async def _(bot: Bot, event: GroupMessageEvent):
         # 将图片添加到消息中
         message += img_segment
     comments = await bottle.get_comments(int(bottle_data['id']))
+
     # 分割字符串以获取每条评论
     comment_lines = comments.split('\n')
 
+    # 初始化新的字符串
+    formatted_comments = ""
+
+    # 初始化计数器
+    comment_count = 0
+    max_bottles_comments = get_driver().config.dict().get("max_bottle_comment", 3)
     # 处理每条评论
     for line in comment_lines:
         # 分割每条评论以获取 ID 和消息
         id_and_comment = line.split(': ')
-        if len(id_and_comment) == 2:
+        if len(id_and_comment) == 2 and comment_count <= max_bottles_comments:
             user_id, comment = id_and_comment[0], ': '.join(id_and_comment[1:])
 
             try:
                 # 调用 API 获取用户信息
-                j = await bot.call_api("get_group_member_info", **{
-                    'group_id': event.group_id,
+                j = await bot.call_api("get_stranger_info", **{
                     'user_id': int(user_id)
                 })
 
-                # 获取成员的名片或姓名
-                name = j.get('card', j.get('nickname', '未知昵称'))
+                # 获取成员的昵称
+                name = j.get('nickname', '未知昵称')
 
-                # 输出结果
-                print(f"{name}: {comment}")
+                # 构造昵称和评论的格式化字符串并添加到 formatted_comments 中
+                formatted_comments += f"{name}: {comment}\n"
             except Exception as e:
                 # 如果 API 调用失败，则使用默认昵称
-                print(f"未知昵称: {comment}")
+                formatted_comments += f"未知昵称: {comment}\n"
 
-    message += comments
+            # 增加计数器
+            comment_count += 1
+    message += Message(formatted_comments)
     # 发送消息
     await get_bottle.finish(message)
 
@@ -207,7 +241,8 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
         # 匹配 \n, \r\n 和 \r
         newline_pattern = r'[\r\n]+'
         number_contains = len(re.findall(newline_pattern, foo))
-        if number_contains > 9:
+        n = get_driver().config.dict().get("max_bottle_liens", 9)
+        if number_contains >= n:
             await throw.finish("丢瓶子内容过长，请不要超过9行哦~")
         id = await id_add()
         id = int(id)

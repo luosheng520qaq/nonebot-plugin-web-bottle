@@ -1,21 +1,22 @@
-from nonebot import on_command, on_fullmatch, get_driver, get_app
-from nonebot.adapters.onebot.v11 import Message, GroupMessageEvent, Bot, MessageSegment
-from nonebot.params import CommandArg
+from nonebot import  get_driver, get_app
+from nonebot.adapters.onebot.v11 import Message,MessageSegment,Bot
 from nonebot.log import logger
 from fastapi import  HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-from datetime import datetime
 from typing import Any, Dict, List
 from . import sqlite3
 import random
 import aiofiles
 import asyncio
-import re
 import base64
 import httpx
+#
+
+
+
 
 
 
@@ -156,12 +157,13 @@ async def cache_file(msg: Message, image_id: int, conn: Connection):
     :param image_id: 图像对应的 ID
     :param conn: 数据库连接
     """
-    semaphore = asyncio.Semaphore(2)  # 控制并发任务数量
+    semaphore = asyncio.Semaphore(2)# 控制并发任务数量
+    max_number = get_driver().config.dict().get("max_bottle_pic", 2)
     async with httpx.AsyncClient() as client:
         tasks = [
             cache_image_url(seg, client, image_id, conn, semaphore)
             for i, seg in enumerate(msg)
-            if seg.type == "image" and i < 3  # 限制只处理前两张图片
+            if seg.type == "image" and i <= max_number  # 限制只处理前两张图片
         ]
         await asyncio.gather(*tasks)
 
