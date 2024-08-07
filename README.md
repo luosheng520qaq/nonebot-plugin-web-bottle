@@ -31,7 +31,7 @@ http://location:nonebot端口/comments 评论审核
 ## 背景图片
 位于：
 ```
-\templates\static\images
+插件目录\templates\static\images
 ```
 可自行修改
 ## 关于漂流瓶配置文件：
