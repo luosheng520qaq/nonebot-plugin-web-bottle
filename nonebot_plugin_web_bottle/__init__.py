@@ -8,17 +8,26 @@ import base64
 from .web_bottle import Bottle, id_add,serialize_message
 import re
 from datetime import datetime, timedelta
-
+from .config import Config
 
 __plugin_meta__ = PluginMetadata(
     name="漂流瓶",
     description="一个基于nonebot2与onebotv11 使用fastapi驱动的漂流瓶插件，有一个简单的web用于审核用户提交的漂流瓶",
-    usage="详细见 https://github.com/luosheng520qaq/nonebot_plugin_web_bottle",
-    type="application",
-    homepage="https://github.com/luosheng520qaq/nonebot_plugin_web_bottle",
-    extra={},
-)
+    usage="详情见https://github.com/luosheng520qaq/nonebot_plugin_web_bottle",
 
+    type="application",
+    # 发布必填，当前有效类型有：`library`（为其他插件编写提供功能），`application`（向机器人用户提供功能）。
+
+    homepage="application",
+    # 发布必填。
+
+    config=Config,
+    # 插件配置项类，如无需配置可不填写。
+
+    supported_adapters={"~onebot.v11"},
+    # 支持的适配器集合，其中 `~` 在此处代表前缀 `nonebot.adapters.`，其余适配器亦按此格式填写。
+    # 若插件可以保证兼容所有适配器（即仅使用基本适配器功能）可不填写，否则应该列出插件支持的适配器。
+)
 
 
 throw = on_command("丢瓶子", aliases={"扔瓶子"}, priority=1, block=True)
