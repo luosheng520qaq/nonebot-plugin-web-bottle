@@ -1,21 +1,21 @@
-from nonebot import  get_driver, get_app
-from nonebot.adapters.onebot.v11 import Message,MessageSegment,Bot
-from nonebot.log import logger
-from fastapi import  HTTPException, Request
+import asyncio
+import base64
+import random
+from typing import Any, Dict, List
+
+import aiofiles
+import httpx
+from fastapi import HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from nonebot import get_driver, get_app
+from nonebot import require
+from nonebot.adapters.onebot.v11 import Message, MessageSegment
+from nonebot.log import logger
 from pydantic import BaseModel
-from typing import Any, Dict, List
-from . import sqlite3
-import random
-import aiofiles
-import asyncio
-import base64
-import httpx
-#
-
-
+from pathlib import Path
+from . import data_deal
 
 
 
@@ -25,8 +25,16 @@ from sqlite3 import Connection
 app = get_app()
 driver = get_driver()
 
-app.mount("/static", StaticFiles(directory="./templates/static"), name="static")
-templates = Jinja2Templates(directory="templates")
+# 获取当前文件所在目录
+plugin_dir = Path(__file__).parent
+
+# 设置静态文件目录路径
+static_dir = plugin_dir / "templates" / "static"
+app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+# 设置模板文件目录路径
+templates_dir = plugin_dir / "templates"
+templates = Jinja2Templates(directory=str(templates_dir))
 
 
 class BottleInfo(BaseModel):
@@ -46,7 +54,7 @@ async def read_item(request: Request):
 
 @app.get("/bottles/random", response_model=BottleInfo)
 async def get_random_bottle():
-    bottle = Bottle(conn=sqlite3.conn_bottle)
+    bottle = Bottle(conn=data_deal.conn_bottle)
     b = await bottle.random_get_bottle()
     if not b:
         raise HTTPException(status_code=404, detail="No bottles found")
@@ -68,21 +76,21 @@ async def get_random_bottle():
 
 @app.post("/bottles/approve/{id}")
 async def approve_bottle(id: int):
-    b = Bottle(conn=sqlite3.conn_bottle)
+    b = Bottle(conn=data_deal.conn_bottle)
     await b.add_approved_bottle(id)
     return {"status": "approved"}
 
 
 @app.post("/bottles/refuse/{id}")
 async def refuse_bottle(id: int):
-    b = Bottle(conn=sqlite3.conn_bottle)
+    b = Bottle(conn=data_deal.conn_bottle)
     await b.refuse_bottle(id)
     return {"status": "refused"}
 
 
 @app.get("/comments", response_class=HTMLResponse)
 async def review_comments(request: Request):
-    conn = sqlite3.conn_bottle
+    conn = data_deal.conn_bottle
     bottle = Bottle(conn)
     comment = await bottle.get_random_comment_with_state_zero()
     if not comment:
@@ -92,7 +100,7 @@ async def review_comments(request: Request):
 
 @app.get("/comments/random")
 async def get_random_comment():
-    conn = sqlite3.conn_bottle
+    conn = data_deal.conn_bottle
     bottle = Bottle(conn)
     comment = await bottle.get_random_comment_with_state_zero()
     if not comment:
@@ -102,7 +110,7 @@ async def get_random_comment():
 
 @app.post("/comments/approve/{comment_id}")
 async def approve_comment(comment_id: int):
-    conn = sqlite3.conn_bottle
+    conn = data_deal.conn_bottle
     bottle = Bottle(conn)
     success = await bottle.pass_comment_state(comment_id)
     if not success:
@@ -112,7 +120,7 @@ async def approve_comment(comment_id: int):
 
 @app.post("/comments/refuse/{comment_id}")
 async def refuse_comment(comment_id: int):
-    bottle = Bottle(sqlite3.conn_bottle)
+    bottle = Bottle(data_deal.conn_bottle)
     success = await bottle.refuse_comment_state(comment_id)
     if not success:
         raise HTTPException(status_code=404, detail="Comment not found")

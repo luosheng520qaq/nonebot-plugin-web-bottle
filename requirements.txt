@@ -5,3 +5,4 @@ fastapi
 pydantic
 base64
 httpx
+nonebot_plugin_localstore

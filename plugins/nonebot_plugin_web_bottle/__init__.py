@@ -3,7 +3,7 @@ from nonebot import on_command, on_fullmatch, get_driver, get_app
 from nonebot.adapters.onebot.v11 import Message, GroupMessageEvent, Bot, MessageSegment
 from nonebot.params import CommandArg
 from nonebot.log import logger
-from . import sqlite3
+from . import data_deal
 import base64
 from .web_bottle import Bottle, id_add,serialize_message
 import re
@@ -34,10 +34,10 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
         a = int(foo.extract_plain_text())
     except:
         await read_bottle.finish("请输入正确的漂流瓶id")
-    bottle = Bottle(sqlite3.conn_bottle)
+    bottle = Bottle(data_deal.conn_bottle)
     b = await bottle.get_approved_bottle_by_id(a)
     if b == None:
-        cursor = sqlite3.conn_bottle.cursor()
+        cursor = data_deal.conn_bottle.cursor()
         query = """
             SELECT state
             FROM pending
@@ -62,17 +62,19 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
         else:
             await read_bottle.finish("发生未知错误！")
     img_bytes_list = await bottle.get_bottle_images(b['id'])
-    j = await bot.call_api(api="get_stranger_info", **{
-        'user_id': int(b['userid'])
-    })
+    try:
+        j = await bot.call_api(api="get_stranger_info", **{
+            'user_id': int(b['userid'])
+        })
 
-    n = await bot.call_api(api="get_group_info", **{
-        'group_id': int(b['groupid'])
-    })
-
-    sender_nickname = j['nickname']
-    group_name = n['group_name']
-
+        n = await bot.call_api(api="get_group_info", **{
+            'group_id': int(b['groupid'])
+        })
+        sender_nickname = j['nickname']
+        group_name = n['group_name']
+    except:
+        sender_nickname = str(b['userid'])
+        group_name = str(b['groupid'])
     # 创建消息段
     message = Message(
         f"捡到漂流瓶id：{b['id']}\n"
@@ -134,7 +136,7 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
         text = str(a[1])
     except:
         await comment.finish("请输入正确的漂流瓶id和评论内容")
-    bottle = Bottle(sqlite3.conn_bottle)
+    bottle = Bottle(data_deal.conn_bottle)
     a = await bottle.add_comment_if_approved(bottle_id, text, event.user_id)
     if not a:
         await comment.finish("评论失败，漂流瓶不存在")
@@ -148,7 +150,7 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
         foo = int(foo.extract_plain_text())
     except:
         await up_bottle.finish("请输入正确的漂流瓶id")
-    bottle = Bottle(sqlite3.conn_bottle)
+    bottle = Bottle(data_deal.conn_bottle)
     a, num = await bottle.up_bottle(foo, event.user_id)
     if not a:
         await up_bottle.finish("点赞失败，漂流瓶不存在或你已经点赞过了")
@@ -159,22 +161,25 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
 @get_bottle.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
     await get_bottle.send("捡瓶子中...")
-    bottle = Bottle(sqlite3.conn_bottle)
+    bottle = Bottle(data_deal.conn_bottle)
     bottle_data = await bottle.random_get_approves_bottle()
     if not bottle_data:
         await get_bottle.finish("捞瓶子失败，没有漂流瓶~")
     img_bytes_list = await bottle.get_bottle_images(bottle_data['id'])
 
-    j = await bot.call_api(api="get_stranger_info", **{
-        'user_id': int(bottle_data['userid'])
-    })
+    try:
+        j = await bot.call_api(api="get_stranger_info", **{
+            'user_id': int(bottle_data['userid'])
+        })
 
-    n = await bot.call_api(api="get_group_info", **{
-        'group_id': int(bottle_data['groupid'])
-    })
-
-    sender_nickname = j['nickname']
-    group_name = n['group_name']
+        n = await bot.call_api(api="get_group_info", **{
+            'group_id': int(bottle_data['groupid'])
+        })
+        sender_nickname = j['nickname']
+        group_name = n['group_name']
+    except:
+        sender_nickname = str(bottle_data['userid'])
+        group_name = str(bottle_data['groupid'])
     # 创建消息段
     message = Message(
         f"捡到漂流瓶id：{bottle_data['id']}\n"
@@ -246,7 +251,7 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
             await throw.finish("丢瓶子内容过长，请不要超过9行哦~")
         id = await id_add()
         id = int(id)
-        conn = sqlite3.conn_bottle
+        conn = data_deal.conn_bottle
         ms = event.get_message()
         content = await serialize_message(ms, id, conn)
         bottle = Bottle(conn)
