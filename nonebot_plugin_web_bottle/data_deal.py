@@ -5,6 +5,7 @@ import os
 from nonebot import logger
 require("nonebot_plugin_localstore")
 import nonebot_plugin_localstore as store
+
 drive = get_driver()
 @drive.on_startup
 def _():
