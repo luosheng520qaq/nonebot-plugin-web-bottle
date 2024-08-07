@@ -16,9 +16,12 @@ from nonebot.log import logger
 from pydantic import BaseModel
 from pathlib import Path
 from . import data_deal
+import os
 
+from nonebot import require
 
-
+require("nonebot_plugin_localstore")
+import nonebot_plugin_localstore as store
 
 from sqlite3 import Connection
 
@@ -668,14 +671,51 @@ class Bottle:
         else:
             return []
 
+plugin_data = store.get_data_dir('nonebot_plugin_web_bottle')
+file_path = os.path.join(plugin_data, 'bottle_id.txt')
 
 async def id_add():
-    async with aiofiles.open("./data/bottle_id.txt", "r+", encoding="utf_8") as f:
+    # Ensure the directory exists
+    os.makedirs(plugin_data, exist_ok=True)
+
+    # Check if the file exists, if not, create it with an initial value of 0
+    if not os.path.exists(file_path):
+        async with aiofiles.open(file_path, 'w+', encoding='utf_8') as f:
+            await f.write('0')
+            await f.close()
+
+    # Read the current ID, increment, and write back the new value
+    async with aiofiles.open(file_path, 'r+', encoding='utf_8') as f:
         k = int(await f.read()) + 1
         await f.close()
-    async with aiofiles.open("./data/bottle_id.txt", "w+", encoding="utf_8") as b:
+
+    async with aiofiles.open(file_path, 'w+', encoding='utf_8') as b:
         await b.write(str(k))
         await b.close()
+
+    return k
+
+file_path = os.path.join(plugin_data, 'bottle_id.txt')
+
+async def id_add():
+    # Ensure the directory exists
+    os.makedirs(plugin_data, exist_ok=True)
+
+    # Check if the file exists, if not, create it with an initial value of 0
+    if not os.path.exists(file_path):
+        async with aiofiles.open(file_path, 'w+', encoding='utf_8') as f:
+            await f.write('0')
+            await f.close()
+
+    # Read the current ID, increment, and write back the new value
+    async with aiofiles.open(file_path, 'r+', encoding='utf_8') as f:
+        k = int(await f.read()) + 1
+        await f.close()
+
+    async with aiofiles.open(file_path, 'w+', encoding='utf_8') as b:
+        await b.write(str(k))
+        await b.close()
+
     return k
 
 

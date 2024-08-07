@@ -1,8 +1,0 @@
-sqlite3
-aiofiles
-asyncio
-fastapi
-pydantic
-base64
-httpx
-nonebot_plugin_localstore
