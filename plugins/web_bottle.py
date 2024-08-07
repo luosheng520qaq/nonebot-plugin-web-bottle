@@ -1,22 +1,19 @@
-from nonebot import on_command, on_fullmatch
-from nonebot.adapters.onebot.v11 import Event, Message, GroupMessageEvent, Bot, MessageSegment, GROUP_ADMIN, GROUP_OWNER
-from nonebot.params import Matcher, CommandArg, ArgPlainText, EventToMe
-import random
-from . import sqllite3
+from nonebot import on_command, on_fullmatch, get_driver, get_app
+from nonebot.adapters.onebot.v11 import Message, GroupMessageEvent, Bot, MessageSegment
+from nonebot.params import CommandArg
 from nonebot.log import logger
-import datetime
-import aiofiles
-import asyncio
-from nonebot import get_driver, get_app
-from datetime import datetime
-from typing import Any, Dict
-import re
 from fastapi import  HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-from typing import List
+from datetime import datetime
+from typing import Any, Dict, List
+from . import sqlite3
+import random
+import aiofiles
+import asyncio
+import re
 import base64
 import httpx
 
@@ -48,7 +45,7 @@ async def read_item(request: Request):
 
 @app.get("/bottles/random", response_model=BottleInfo)
 async def get_random_bottle():
-    bottle = Bottle(conn=sqllite3.conn_bottle)
+    bottle = Bottle(conn=sqlite3.conn_bottle)
     b = await bottle.random_get_bottle()
     if not b:
         raise HTTPException(status_code=404, detail="No bottles found")
@@ -70,21 +67,21 @@ async def get_random_bottle():
 
 @app.post("/bottles/approve/{id}")
 async def approve_bottle(id: int):
-    b = Bottle(conn=sqllite3.conn_bottle)
+    b = Bottle(conn=sqlite3.conn_bottle)
     await b.add_approved_bottle(id)
     return {"status": "approved"}
 
 
 @app.post("/bottles/refuse/{id}")
 async def refuse_bottle(id: int):
-    b = Bottle(conn=sqllite3.conn_bottle)
+    b = Bottle(conn=sqlite3.conn_bottle)
     await b.refuse_bottle(id)
     return {"status": "refused"}
 
 
 @app.get("/comments", response_class=HTMLResponse)
 async def review_comments(request: Request):
-    conn = sqllite3.conn_bottle
+    conn = sqlite3.conn_bottle
     bottle = Bottle(conn)
     comment = await bottle.get_random_comment_with_state_zero()
     if not comment:
@@ -94,7 +91,7 @@ async def review_comments(request: Request):
 
 @app.get("/comments/random")
 async def get_random_comment():
-    conn = sqllite3.conn_bottle
+    conn = sqlite3.conn_bottle
     bottle = Bottle(conn)
     comment = await bottle.get_random_comment_with_state_zero()
     if not comment:
@@ -104,7 +101,7 @@ async def get_random_comment():
 
 @app.post("/comments/approve/{comment_id}")
 async def approve_comment(comment_id: int):
-    conn = sqllite3.conn_bottle
+    conn = sqlite3.conn_bottle
     bottle = Bottle(conn)
     success = await bottle.pass_comment_state(comment_id)
     if not success:
@@ -114,7 +111,7 @@ async def approve_comment(comment_id: int):
 
 @app.post("/comments/refuse/{comment_id}")
 async def refuse_comment(comment_id: int):
-    bottle = Bottle(sqllite3.conn_bottle)
+    bottle = Bottle(sqlite3.conn_bottle)
     success = await bottle.refuse_comment_state(comment_id)
     if not success:
         raise HTTPException(status_code=404, detail="Comment not found")
@@ -711,10 +708,10 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
         a = int(foo.extract_plain_text())
     except:
         await read_bottle.finish("请输入正确的漂流瓶id")
-    bottle = Bottle(sqllite3.conn_bottle)
+    bottle = Bottle(sqlite3.conn_bottle)
     b = await bottle.get_approved_bottle_by_id(a)
     if b == None:
-        cursor = sqllite3.conn_bottle.cursor()
+        cursor = sqlite3.conn_bottle.cursor()
         query = """
             SELECT state
             FROM pending
@@ -797,7 +794,7 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
         text = str(a[1])
     except:
         await comment.finish("请输入正确的漂流瓶id和评论内容")
-    bottle = Bottle(sqllite3.conn_bottle)
+    bottle = Bottle(sqlite3.conn_bottle)
     a = await bottle.add_comment_if_approved(bottle_id, text, event.user_id)
     if not a:
         await comment.finish("评论失败，漂流瓶不存在")
@@ -811,7 +808,7 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
         foo = int(foo.extract_plain_text())
     except:
         await up_bottle.finish("请输入正确的漂流瓶id")
-    bottle = Bottle(sqllite3.conn_bottle)
+    bottle = Bottle(sqlite3.conn_bottle)
     a, num = await bottle.up_bottle(foo, event.user_id)
     if not a:
         await up_bottle.finish("点赞失败，漂流瓶不存在或你已经点赞过了")
@@ -822,7 +819,7 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
 @get_bottle.handle()
 async def _(bot: Bot, event: GroupMessageEvent):
     await get_bottle.send("捡瓶子中...")
-    bottle = Bottle(sqllite3.conn_bottle)
+    bottle = Bottle(sqlite3.conn_bottle)
     bottle_data = await bottle.random_get_approves_bottle()
     if not bottle_data:
         await get_bottle.finish("捞瓶子失败，没有漂流瓶~")
@@ -890,7 +887,7 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
             await throw.finish("丢瓶子内容过长，请不要超过9行哦~")
         id = await id_add()
         id = int(id)
-        conn = sqllite3.conn_bottle
+        conn = sqlite3.conn_bottle
         ms = event.get_message()
         content = await serialize_message(ms, id, conn)
         bottle = Bottle(conn)
