@@ -11,13 +11,13 @@ pip install -r requirements.txt
 ```
 # 目前实现了什么？
 ## 在QQ内
-丢瓶子
-捡瓶子
-评论漂流瓶 [编号] [评论内容]
-点赞漂流瓶 [编号]
+### 丢瓶子
+### 捡瓶子
+### 评论漂流瓶 [编号] [评论内容]
+### 点赞漂流瓶 [编号]
 ## 在网页端
-审核漂流瓶
-审核评论
+### 审核漂流瓶
+### 审核评论
 # 效果图：
 ![Image of Yaktocat](https://github.com/luosheng520qaq/nonebot_plugin_web_bottle/blob/master/example/bottles.png)
 ![Image of Yaktocat](https://github.com/luosheng520qaq/nonebot_plugin_web_bottle/blob/master/example/comments.png)
@@ -34,10 +34,18 @@ http://location:nonebot端口/comments 评论审核
 \templates\static\images
 ```
 可自行修改
-## 关于漂流瓶图片数量：
-为防止过多读取时内存占用过高，一个瓶子内最多允许有两张图片，如果你觉得需要更多，请修改位于plugins/web_bottle.py 的167行代码将
+## 关于漂流瓶配置文件：
+为防止过多读取时内存占用过高，一个瓶子内最多允许有两张图片，如果需要更多，请在nonebot配置项写入 
 ```
-if seg.type == "image" and i < 3  # 限制只处理前两张图片中的3 改为其他数字
+max_bottle_pic = 
+```
+漂流瓶的最长列数量默认为9行
+```
+max_bottle_liens = 
+```
+单个漂流瓶显示的评论数量，默认为3
+```
+max_bottle_comments = 
 ```
 # 未来计划
 - [ ] 新增一个网页填入id查看漂流瓶详情
