@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot_plugin_web_bottle"
-version = "0.0.9"
+version = "0.1.0"
 description = "Web Bottle post plugin in Nonebot"
 authors = ["Xican <723926109@qq.com>"]
 license = "MIT"
@@ -31,7 +31,7 @@ build-backend = "pdm.backend"
 
 [project]
 name = "nonebot_plugin_web_bottle"
-version = "0.0.9"
+version = "0.1.0"
 description = "有web的漂流瓶"
 authors = [
     {name = "Xican", email = "723926109@qq.com"},
