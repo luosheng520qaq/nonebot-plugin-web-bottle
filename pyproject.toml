@@ -17,8 +17,7 @@ httpx = ">=0.23.0"
 fastapi = ">=0.110.0"
 pydantic = ">=1.10.11"
 
-[tool.pdm]
-distribution = true
+
 
 [tool.pdm.dev-dependencies]
 dev = [
