@@ -28,7 +28,7 @@ requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
 [project]
-name = "nonebot-plugin-web-bottle"
+name = "nonebot_plugin_web_bottle"
 version = "0.0.1"
 description = "有web的漂流瓶"
 authors = [
