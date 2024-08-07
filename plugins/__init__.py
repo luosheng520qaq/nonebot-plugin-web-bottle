@@ -1,5 +1,6 @@
 from nonebot.plugin import PluginMetadata
-
+from . import sqlite3
+from . import web_bottle
 
 __plugin_meta__ = PluginMetadata(
     name="漂流瓶",
