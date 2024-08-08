@@ -83,12 +83,18 @@ ignore = [
     'ANN101', # 由 type checker 自动推断
     'ANN102', # 由 type checker 自动推断
     'ANN202', # 向 NoneBot 注册的函数
+    'B008',   # NoneBot 依赖注入
     'TRY003',
     'COM812', # 强制尾随逗号
     'TID252', # 相对导入
     'ISC001', # format warning
+    'RUF001', # 全角字符
     'RUF002', # 全角字符
+    'RUF003', # 全角字符
 ]
+
+[tool.ruff.lint.flake8-builtins]
+builtins-ignorelist = ["id"]
 
 [tool.ruff.lint.flake8-annotations]
 mypy-init-return = true
