@@ -1,8 +1,8 @@
 from nonebot import get_driver
-from pydantic import Extra, BaseModel
+from pydantic import BaseModel
 
 
-class Config(BaseModel, extra=Extra.ignore):
+class Config(BaseModel):
     # 一个瓶子最大的图片数量
     max_bottle_pic: int = 2
     # 一个瓶子的最大换行长度
