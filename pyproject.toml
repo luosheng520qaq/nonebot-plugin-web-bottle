@@ -1,26 +1,22 @@
-[tool.poetry]
+[project]
 name = "nonebot_plugin_web_bottle"
 version = "0.2.1"
-description = "Web Bottle post plugin in Nonebot"
-authors = ["Xican <723926109@qq.com>"]
-license = "MIT"
+description = "有web的漂流瓶"
+authors = [{ name = "Xican", email = "723926109@qq.com" }]
+dependencies = [
+    "aiofiles>=23.2.1",
+    "httpx>=0.23.0",
+    "nonebot-plugin-localstore>=0.7.1",
+    "nonebot-adapter-onebot>=2.4.4",
+    "nonebot2[fastapi]>=2.3.2",
+]
+requires-python = ">=3.10"
 readme = "README.md"
+license = { text = "MIT" }
+
+[project.urls]
 homepage = "https://github.com/luosheng520qaq/nonebot-plugin-web-bottle/"
 repository = "https://github.com/luosheng520qaq/nonebot-plugin-web-bottle/"
-
-[tool.poetry.dependencies]
-python = "^3.11"
-nonebot2 = {extras = ["fastapi"], version = "^2.0.0"}
-aiofiles = ">=0.8.0"
-nonebot_plugin_localstore = ">=0.7.0"
-httpx = ">=0.23.0"
-fastapi = ">=0.110.0"
-pydantic = ">=1.10.11"
-nonebot-adapter-onebot = "^2.4.4"
-
-[tool.poetry.dev-dependencies]
-nonebot2 = {extras = ["fastapi", "uvicorn"], version = ">=2.3.2"}
-nonebot-adapter-onebot = ">=2.4.4"
 
 [build-system]
 requires = ["pdm-backend"]
@@ -29,25 +25,7 @@ build-backend = "pdm.backend"
 [tool.pdm]
 distribution = true
 
-[project]
-name = "nonebot_plugin_web_bottle"
-version = "0.2.1"
-description = "有web的漂流瓶"
-authors = [
-    {name = "Xican", email = "723926109@qq.com"},
+[tool.pdm.dev-dependencies]
+dev = [
+    "ruff>=0.5.6",
 ]
-dependencies = [
-    "fastapi>=0.110.0",
-    "aiofiles>=23.2.1",
-    "httpx>=0.23.0",
-    "pydantic>=1.10.11",
-    "nonebot_plugin_localstore>=0.7.0",
-    "nonebot-adapter-onebot>=2.4.4"
-]
-requires-python = ">=3.11"
-readme = "README.md"
-license = {text = "MIT"}
-
-[project.urls]
-homepage = "https://github.com/luosheng520qaq/nonebot-plugin-web-bottle/"
-repository = "https://github.com/luosheng520qaq/nonebot-plugin-web-bottle/"
