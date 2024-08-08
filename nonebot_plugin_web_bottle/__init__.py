@@ -13,16 +13,19 @@ from .config import Config
 __plugin_meta__ = PluginMetadata(
     name="漂流瓶",
     description="一个基于nonebot2与onebotv11 使用fastapi驱动的漂流瓶插件，有一个简单的web用于审核用户提交的漂流瓶",
-    usage="详情见https://github.com/luosheng520qaq/nonebot_plugin_web_bottle",
+    usage="""
+    扔瓶子
+    捡瓶子
+    评论漂流瓶[编号] [文本]
+    点赞漂流瓶[编号]
+    """,
 
     type="application",
     # 发布必填，当前有效类型有：`library`（为其他插件编写提供功能），`application`（向机器人用户提供功能）。
 
-    homepage="application",
+    homepage="https://github.com/luosheng520qaq/nonebot-plugin-web-bottle",
     # 发布必填。
-
     config=Config,
-    # 插件配置项类，如无需配置可不填写。
 
     supported_adapters={"~onebot.v11"},
     # 支持的适配器集合，其中 `~` 在此处代表前缀 `nonebot.adapters.`，其余适配器亦按此格式填写。
@@ -216,7 +219,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
     # 初始化计数器
     comment_count = 0
-    max_bottles_comments = get_driver().config.dict().get("max_bottle_comment", 3)
+    max_bottles_comments = Config.max_bottle_comments
     # 处理每条评论
     for line in comment_lines:
         # 分割每条评论以获取 ID 和消息
@@ -255,7 +258,7 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
         # 匹配 \n, \r\n 和 \r
         newline_pattern = r'[\r\n]+'
         number_contains = len(re.findall(newline_pattern, foo))
-        n = get_driver().config.dict().get("max_bottle_liens", 9)
+        n = Config.max_bottle_liens
         if number_contains >= n:
             await throw.finish("丢瓶子内容过长，请不要超过9行哦~")
         id = await id_add()

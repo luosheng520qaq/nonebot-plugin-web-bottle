@@ -17,7 +17,7 @@ from pydantic import BaseModel
 from pathlib import Path
 from . import data_deal
 import os
-
+from .config import Config
 from nonebot import require
 
 require("nonebot_plugin_localstore")
@@ -169,7 +169,7 @@ async def cache_file(msg: Message, image_id: int, conn: Connection):
     :param conn: 数据库连接
     """
     semaphore = asyncio.Semaphore(2)# 控制并发任务数量
-    max_number = get_driver().config.dict().get("max_bottle_pic", 2)
+    max_number = Config.max_bottle_pic
     async with httpx.AsyncClient() as client:
         tasks = [
             cache_image_url(seg, client, image_id, conn, semaphore)
