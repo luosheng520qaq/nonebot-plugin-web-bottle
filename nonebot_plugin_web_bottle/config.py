@@ -8,7 +8,7 @@ class Config(BaseModel, extra=Extra.ignore):
     # 一个瓶子的最大换行长度
     max_bottle_liens: int = 9
     # 单个瓶子捡取时展示的最大评论数量
-    max_bottle_comments = 3
+    max_bottle_comments: int = 3
 
 
 config = Config.parse_obj(get_driver().config.dict())
