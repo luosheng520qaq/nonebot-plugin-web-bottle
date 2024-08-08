@@ -1,6 +1,6 @@
 [project]
 name = "nonebot_plugin_web_bottle"
-version = "0.2.4"
+version = "0.2.5"
 description = "有web的漂流瓶"
 authors = [{ name = "Xican", email = "723926109@qq.com" }]
 dependencies = [
@@ -9,6 +9,7 @@ dependencies = [
     "nonebot-plugin-localstore>=0.7.1",
     "nonebot-adapter-onebot>=2.4.4",
     "nonebot2[fastapi]>=2.3.2",
+    "jinja2>=3.1.4",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
