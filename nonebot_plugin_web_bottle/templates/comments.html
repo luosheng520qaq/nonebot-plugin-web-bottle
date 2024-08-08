@@ -1,40 +1,84 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>评论审核</title>
-    <link rel="stylesheet" href="/static/comments_styles.css"> <!-- 引用新的CSS文件 -->
+    <title>瓶子审核</title>
+    <link rel="stylesheet" href="/static/comments_styles.css">
     <script>
-        async function handleAction(commentId, action) {
-            const response = await fetch(`/comments/${action}/${commentId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
+        async function fetchBottle() {
+            try {
+                const response = await fetch('/bottles/random');
+                if (response.status === 404) {
+                    document.getElementById('message').innerText = '没有更多的瓶子需要审核';
+                    document.getElementById('bottle').style.display = 'none';
+                    return;
                 }
-            });
-            if (response.ok) {
-                window.location.reload();  // 刷新页面
-            } else {
-                alert('操作失败，请稍后重试。');
+                const bottle = await response.json();
+                document.getElementById('id').innerText = bottle.ID;
+                document.getElementById('content').innerText = bottle.Content;
+                document.getElementById('userid').innerText = bottle.UserID;
+                document.getElementById('groupid').innerText = bottle.GroupID;
+                document.getElementById('timeinfo').innerText = bottle.TimeInfo;
+                document.getElementById('state').innerText = bottle.State;
+
+                const imagesContainer = document.getElementById('images');
+                imagesContainer.innerHTML = '';
+                bottle.Images.forEach(img => {
+                    const image = new Image();
+                    image.src = `data:image/png;base64,${img}`;
+                    imagesContainer.appendChild(image);
+                });
+
+                document.getElementById('bottle').style.display = 'block';
+            } catch (error) {
+                console.error('发生错误:', error);
             }
         }
+
+        async function approveBottle() {
+            try {
+                const id = document.getElementById('id').innerText;
+                const response = await fetch(`/bottles/approve/${id}`, { method: 'POST' });
+                if (response.ok) {
+                    fetchBottle();
+                } else {
+                    console.error('审核通过失败:', await response.json());
+                }
+            } catch (error) {
+                console.error('发生错误:', error);
+            }
+        }
+
+        async function refuseBottle() {
+            try {
+                const id = document.getElementById('id').innerText;
+                const response = await fetch(`/bottles/refuse/${id}`, { method: 'POST' });
+                if (response.ok) {
+                    fetchBottle();
+                } else {
+                    console.error('审核拒绝失败:', await response.json());
+                }
+            } catch (error) {
+                console.error('发生错误:', error);
+            }
+        }
+
+        window.onload = fetchBottle;
     </script>
 </head>
 <body>
-    <h1>评论审核</h1>
-    {% if comment %}
-    <div id="comment-container">
-        <p><strong>评论 ID:</strong> {{ comment.comment_id }}</p>
-        <p><strong>瓶子 ID:</strong> {{ comment.bottle_id }}</p>
-        <p><strong>评论内容:</strong> {{ comment.content }}</p>
-        <p><strong>状态:</strong> {{ comment.state }}</p>
-        <p><strong>用户 ID:</strong> {{ comment.uid }}</p>
-        <button onclick="handleAction({{ comment.comment_id }}, 'approve')">通过</button>
-        <button onclick="handleAction({{ comment.comment_id }}, 'refuse')">拒绝</button>
+    <div id="message"></div>
+    <div id="bottle" style="display:none;">
+        <p>ID: <span id="id"></span></p>
+        <p>内容: <span id="content"></span></p>
+        <p>用户ID: <span id="userid"></span></p>
+        <p>群组ID: <span id="groupid"></span></p>
+        <p>时间信息: <span id="timeinfo"></span></p>
+        <p>状态: <span id="state"></span></p>
+        <div id="images"></div>
+        <button onclick="approveBottle()">通过</button>
+        <button onclick="refuseBottle()">拒绝</button>
     </div>
-    {% else %}
-    <p>没有待审核的评论。</p>
-    {% endif %}
 </body>
 </html>

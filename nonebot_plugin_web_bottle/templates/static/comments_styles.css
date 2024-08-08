@@ -1,4 +1,3 @@
-/* comments_styles.css */
 body {
     font-family: 'Comic Sans MS', cursive, sans-serif; /* 更换为可爱的字体 */
     background: url('/static/images/background.jpg') no-repeat center center fixed;
@@ -6,6 +5,8 @@ body {
     margin: 0;
     padding: 0;
     color: #ff6666; /* 更改文字颜色为粉红色 */
+    height: 100vh; /* 使背景图片占满整个屏幕 */
+    overflow: hidden; /* 防止滚动条出现 */
 }
 
 h1 {
