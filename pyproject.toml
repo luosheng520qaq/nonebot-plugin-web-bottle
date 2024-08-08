@@ -2,25 +2,102 @@
 name = "nonebot_plugin_web_bottle"
 version = "0.2.2"
 description = "有web的漂流瓶"
-authors = [
-    {name = "Xican", email = "723926109@qq.com"},
-]
+authors = [{ name = "Xican", email = "723926109@qq.com" }]
 dependencies = [
-    "nonebot2[fastapi]>=2.0.0",
-    "aiofiles>=0.8.0",
-    "nonebot_plugin_localstore>=0.7.0",
+    "aiofiles>=23.2.1",
     "httpx>=0.23.0",
-    "fastapi>=0.110.0",
-    "pydantic>=1.10.11",
-    "nonebot-adapter-onebot>=2.4.4"
+    "nonebot-plugin-localstore>=0.7.1",
+    "nonebot-adapter-onebot>=2.4.4",
+    "nonebot2[fastapi]>=2.3.2",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
-license = {text = "MIT"}
+license = { text = "MIT" }
 
 [project.urls]
 homepage = "https://github.com/luosheng520qaq/nonebot-plugin-web-bottle/"
 repository = "https://github.com/luosheng520qaq/nonebot-plugin-web-bottle/"
 
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
 [tool.pdm]
 distribution = true
+
+[tool.pdm.dev-dependencies]
+dev = ["ruff>=0.5.6"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    'F',     # pyflakes
+    'E',     # pycodestyle errors
+    'W',     # pycodestyle warnings
+    'C90',   # mccabe
+    'I',     # isort
+    'N',     # PEP8-naming
+    'UP',    # pyupgrade
+    'YTT',   # flake8-2020
+    'ANN',   # flake8-annotations
+    'ASYNC', # flake8-async
+    'S',     # flake8-bandit
+    'BLE',   # flake8-blind-except
+    'FBT',   # flake8-boolean-trap
+    'B',     # flake8-bugbear
+    'A',     # flake8-builtins
+    'COM',   # flake8-commas
+    'C4',    # flake8-comprehensions
+    'DTZ',   # flake8-datetimez
+    'T10',   # flake8-debugger
+    'EM',    # flake8-errmsg
+    'FA',    # flake8-future-annotations
+    'ISC',   # flake8-implicit-str-concat
+    'ICN',   # flake8-import-conventions
+    'PIE',   # flake8-pie
+    'T20',   # flake8-print
+    'Q',     # flake8-quotes
+    'RSE',   # flake8-raise
+    'RET',   # flake8-return
+    'SLF',   # flake8-self
+    'SIM',   # flake8-simplify
+    'TID',   # flake8-tidy-imports
+    'TCH',   # flake8-type-checking
+    'ARG',   # flake8-unused-arguments
+    'PTH',   # flake8-use-pathlib
+    'ERA',   # eradicate
+    'PD',    # pandas-vet
+    'PGH',   # pygrep-hooks
+    'PL',    # pylint
+    'TRY',   # tryceratops
+    'FLY',   # flynt
+    'PERF',  # Perflint
+    'FURB',  # refurb
+    'RUF',   # Ruff-specific rules
+]
+ignore = [
+    'E501',   # 过长的行由 ruff format 处理, 剩余的都是字符串
+    'ANN101', # 由 type checker 自动推断
+    'ANN102', # 由 type checker 自动推断
+    'ANN202', # 向 NoneBot 注册的函数
+    'B008',   # NoneBot 依赖注入
+    'TRY003',
+    'COM812', # 强制尾随逗号
+    'TID252', # 相对导入
+    'ISC001', # format warning
+    'RUF001', # 全角字符
+    'RUF002', # 全角字符
+    'RUF003', # 全角字符
+]
+
+[tool.ruff.lint.flake8-builtins]
+builtins-ignorelist = ["id"]
+
+[tool.ruff.lint.flake8-annotations]
+mypy-init-return = true
+
+[tool.ruff.format]
+quote-style = 'double'
