@@ -8,7 +8,7 @@ from nonebot.params import CommandArg
 from nonebot.plugin import PluginMetadata
 
 from . import data_deal
-from .config import Config
+from .config import max_bottle_pic,max_bottle_comments,max_bottle_liens,Config
 from .web_bottle import Bottle, id_add, serialize_message
 
 __plugin_meta__ = PluginMetadata(
@@ -205,7 +205,7 @@ async def _(bot: Bot):
 
     # 初始化计数器
     comment_count = 0
-    max_bottles_comments = Config.max_bottle_comments
+    max_bottles_comments = max_bottle_comments
     # 处理每条评论
     for line in comment_lines:
         # 分割每条评论以获取 ID 和消息
@@ -242,7 +242,7 @@ async def _(event: GroupMessageEvent, args: Message = CommandArg()):
         # 匹配 \n, \r\n 和 \r
         newline_pattern = r"[\r\n]+"
         number_contains = len(re.findall(newline_pattern, content))
-        n = Config.max_bottle_liens
+        n = max_bottle_liens
         if number_contains >= n:
             await throw.finish("丢瓶子内容过长，请不要超过9行哦~")
         id = await id_add()
