@@ -10,7 +10,6 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from nonebot import get_driver, get_app
-from nonebot import require
 from nonebot.adapters.onebot.v11 import Message, MessageSegment
 from nonebot.log import logger
 from pydantic import BaseModel
@@ -695,28 +694,9 @@ async def id_add():
 
     return k
 
-file_path = os.path.join(plugin_data, 'bottle_id.txt')
 
-async def id_add():
-    # Ensure the directory exists
-    os.makedirs(plugin_data, exist_ok=True)
 
-    # Check if the file exists, if not, create it with an initial value of 0
-    if not os.path.exists(file_path):
-        async with aiofiles.open(file_path, 'w+', encoding='utf_8') as f:
-            await f.write('0')
-            await f.close()
 
-    # Read the current ID, increment, and write back the new value
-    async with aiofiles.open(file_path, 'r+', encoding='utf_8') as f:
-        k = int(await f.read()) + 1
-        await f.close()
-
-    async with aiofiles.open(file_path, 'w+', encoding='utf_8') as b:
-        await b.write(str(k))
-        await b.close()
-
-    return k
 
 
 async def extract_and_join_text_from_message(message_list: list) -> str:
