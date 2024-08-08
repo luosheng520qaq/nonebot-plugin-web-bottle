@@ -1,4 +1,4 @@
-from nonebot import get_driver
+from nonebot import get_plugin_config
 from pydantic import BaseModel
 
 
@@ -11,7 +11,7 @@ class Config(BaseModel):
     max_bottle_comments: int = 3
 
 
-config = Config.parse_obj(get_driver().config.dict())
+config = get_plugin_config(Config)
 max_bottle_pic = config.max_bottle_pic
 max_bottle_liens = config.max_bottle_liens
 max_bottle_comments = config.max_bottle_comments
