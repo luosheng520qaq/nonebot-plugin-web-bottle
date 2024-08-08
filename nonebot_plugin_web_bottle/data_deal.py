@@ -1,22 +1,22 @@
-import os
 import sqlite3
 
 from nonebot import get_driver, logger, require
 
 require("nonebot_plugin_localstore")
-import nonebot_plugin_localstore as store
+
+import nonebot_plugin_localstore as store  # noqa: E402
 
 drive = get_driver()
 
 
 @drive.on_startup
 def _():
-    global conn_bottle
+    global conn_bottle  # noqa: PLW0603 # !WTF
     # 获取插件的数据目录
     plugin_data = store.get_data_dir("nonebot_plugin_web_bottle")
 
     # 确保目录存在
-    os.makedirs(plugin_data, exist_ok=True)
+    plugin_data.mkdir(exist_ok=True)
 
     # 数据库文件路径
     db_path = plugin_data / "bottle.db"

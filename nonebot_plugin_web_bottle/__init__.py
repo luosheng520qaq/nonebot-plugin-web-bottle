@@ -39,7 +39,7 @@ read_bottle = on_command("查看漂流瓶", priority=1, block=True)
 
 
 @read_bottle.handle()
-async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
+async def _(bot: Bot, foo: Message = CommandArg()):
     try:
         a = int(foo.extract_plain_text())
     except ValueError:
@@ -65,7 +65,7 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
 
         # 返回查询结果，如果没有找到则返回None
         c = result[0]
-        if c == 100:
+        if c == 100:  # noqa: PLR2004
             await read_bottle.finish("漂流瓶已拒绝无法查看！")
         elif c == 0:
             await read_bottle.finish("漂流瓶未审核")
@@ -78,7 +78,7 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
         n = await bot.call_api(api="get_group_info", group_id=int(b["groupid"]))
         sender_nickname = j["nickname"]
         group_name = n["group_name"]
-    except:
+    except:  # noqa: E722 # TODO)): 只抓需要的 Error
         sender_nickname = str(b["userid"])
         group_name = str(b["groupid"])
     # 创建消息段
@@ -110,7 +110,7 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
     for line in comment_lines:
         # 分割每条评论以获取 ID 和消息
         id_and_comment = line.split(": ")
-        if len(id_and_comment) == 2:
+        if len(id_and_comment) == 2:  # noqa: PLR2004
             user_id, comment = id_and_comment[0], ": ".join(id_and_comment[1:])
             try:
                 # 调用 API 获取用户信息
@@ -121,7 +121,7 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
 
                 # 构造昵称和评论的格式化字符串并添加到 formatted_comments 中
                 formatted_comments += f"{name}: {comment}\n"
-            except Exception:
+            except Exception:  # TODO)): 只抓需要的 Error  # noqa: BLE001
                 # 如果 API 调用失败，则使用默认昵称
                 formatted_comments += f"未知昵称: {comment}\n"
     message += Message(formatted_comments)
@@ -131,15 +131,15 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
 
 
 @comment.handle()
-async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
+async def _(event: GroupMessageEvent, foo: Message = CommandArg()):
     try:
         a = str(foo).split()
         bottle_id = int(a[0])
         text = str(a[1])
-    except:
+    except ValueError:
         await comment.finish("请输入正确的漂流瓶id和评论内容")
     bottle = Bottle(data_deal.conn_bottle)
-    a = await bottle.add_comment_if_approved(bottle_id, text, event.user_id)
+    a = await bottle.add_comment_if_approved(bottle_id, text, str(event.user_id))
     if not a:
         await comment.finish("评论失败，漂流瓶不存在")
     else:
@@ -147,13 +147,13 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
 
 
 @up_bottle.handle()
-async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
+async def _(event: GroupMessageEvent, args: Message = CommandArg()):
     try:
-        foo = int(foo.extract_plain_text())
-    except:
+        id = int(args.extract_plain_text())
+    except ValueError:
         await up_bottle.finish("请输入正确的漂流瓶id")
     bottle = Bottle(data_deal.conn_bottle)
-    a, num = await bottle.up_bottle(foo, event.user_id)
+    a, num = await bottle.up_bottle(id, str(event.user_id))
     if not a:
         await up_bottle.finish("点赞失败，漂流瓶不存在或你已经点赞过了")
     else:
@@ -161,7 +161,7 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
 
 
 @get_bottle.handle()
-async def _(bot: Bot, event: GroupMessageEvent):
+async def _(bot: Bot):
     await get_bottle.send("捡瓶子中...")
     bottle = Bottle(data_deal.conn_bottle)
     bottle_data = await bottle.random_get_approves_bottle()
@@ -175,7 +175,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
         n = await bot.call_api(api="get_group_info", group_id=int(bottle_data["groupid"]))
         sender_nickname = j["nickname"]
         group_name = n["group_name"]
-    except:
+    except:  # TODO)): 只抓需要的 Error  # noqa: E722
         sender_nickname = str(bottle_data["userid"])
         group_name = str(bottle_data["groupid"])
     # 创建消息段
@@ -210,7 +210,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
     for line in comment_lines:
         # 分割每条评论以获取 ID 和消息
         id_and_comment = line.split(": ")
-        if len(id_and_comment) == 2 and comment_count <= max_bottles_comments:
+        if len(id_and_comment) == 2 and comment_count <= max_bottles_comments:  # noqa: PLR2004
             user_id, comment = id_and_comment[0], ": ".join(id_and_comment[1:])
 
             try:
@@ -222,7 +222,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
                 # 构造昵称和评论的格式化字符串并添加到 formatted_comments 中
                 formatted_comments += f"{name}: {comment}\n"
-            except Exception:
+            except Exception:  # TODO)): 只抓需要的 Error  # noqa: BLE001
                 # 如果 API 调用失败，则使用默认昵称
                 formatted_comments += f"未知昵称: {comment}\n"
 
@@ -234,24 +234,22 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
 
 @throw.handle()
-async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
-    if not foo:
+async def _(event: GroupMessageEvent, args: Message = CommandArg()):
+    if not args:
         await throw.finish("丢瓶子需要输入内容哦~")
     else:
-        foo = foo.extract_plain_text().strip()
+        content = args.extract_plain_text().strip()
         # 匹配 \n, \r\n 和 \r
         newline_pattern = r"[\r\n]+"
-        number_contains = len(re.findall(newline_pattern, foo))
+        number_contains = len(re.findall(newline_pattern, content))
         n = Config.max_bottle_liens
         if number_contains >= n:
             await throw.finish("丢瓶子内容过长，请不要超过9行哦~")
         id = await id_add()
-        id = int(id)
         conn = data_deal.conn_bottle
-        ms = event.get_message()
-        content = await serialize_message(ms, id, conn)
+        await serialize_message(event.get_message(), id, conn)
         bottle = Bottle(conn)
-        time_info = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        a = await bottle.add_pending_bottle(id, foo, event.user_id, event.group_id, time_info)
+        time_info = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # TODO)): 统一规定时区 # noqa: DTZ005
+        a = await bottle.add_pending_bottle(id, content, str(event.user_id), str(event.group_id), time_info)
         if a:
             await throw.finish(f"丢瓶子成功，请等待管理员审核~、id:{id}")
