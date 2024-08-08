@@ -19,7 +19,7 @@ from pydantic import BaseModel
 from starlette.templating import _TemplateResponse
 
 from . import data_deal
-from .config import Config
+from .config import max_bottle_pic
 
 require("nonebot_plugin_localstore")
 
@@ -170,7 +170,7 @@ async def cache_file(msg: Message, image_id: int, conn: Connection) -> None:
     :param conn: 数据库连接
     """
     semaphore = asyncio.Semaphore(2)  # 控制并发任务数量
-    max_number = Config.max_bottle_pic
+    max_number = max_bottle_pic
     async with httpx.AsyncClient() as client:
         tasks = [
             cache_image_url(seg, client, image_id, conn, semaphore)
