@@ -5,7 +5,7 @@ from typing import Any, Dict, List
 
 import aiofiles
 import httpx
-from fastapi import HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -26,6 +26,10 @@ import nonebot_plugin_localstore as store
 from sqlite3 import Connection
 
 app = get_app()
+
+if not isinstance(app, FastAPI):
+    raise RuntimeError("本插件需要 FastAPI 驱动器才能正常运行")
+
 driver = get_driver()
 
 # 获取当前文件所在目录
