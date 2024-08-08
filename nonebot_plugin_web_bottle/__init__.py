@@ -73,9 +73,9 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
             await read_bottle.finish("发生未知错误！")
     img_bytes_list = await bottle.get_bottle_images(b["id"])
     try:
-        j = await bot.call_api(api="get_stranger_info", **{"user_id": int(b["userid"])})
+        j = await bot.call_api(api="get_stranger_info", user_id=int(b["userid"]))
 
-        n = await bot.call_api(api="get_group_info", **{"group_id": int(b["groupid"])})
+        n = await bot.call_api(api="get_group_info", group_id=int(b["groupid"]))
         sender_nickname = j["nickname"]
         group_name = n["group_name"]
     except:
@@ -114,7 +114,7 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
             user_id, comment = id_and_comment[0], ": ".join(id_and_comment[1:])
             try:
                 # 调用 API 获取用户信息
-                j = await bot.call_api("get_stranger_info", **{"user_id": int(user_id)})
+                j = await bot.call_api("get_stranger_info", user_id=int(user_id))
 
                 # 获取成员的昵称
                 name = j.get("nickname", "未知昵称")
@@ -170,9 +170,9 @@ async def _(bot: Bot, event: GroupMessageEvent):
     img_bytes_list = await bottle.get_bottle_images(bottle_data["id"])
 
     try:
-        j = await bot.call_api(api="get_stranger_info", **{"user_id": int(bottle_data["userid"])})
+        j = await bot.call_api(api="get_stranger_info", user_id=int(bottle_data["userid"]))
 
-        n = await bot.call_api(api="get_group_info", **{"group_id": int(bottle_data["groupid"])})
+        n = await bot.call_api(api="get_group_info", group_id=int(bottle_data["groupid"]))
         sender_nickname = j["nickname"]
         group_name = n["group_name"]
     except:
@@ -215,7 +215,7 @@ async def _(bot: Bot, event: GroupMessageEvent):
 
             try:
                 # 调用 API 获取用户信息
-                j = await bot.call_api("get_stranger_info", **{"user_id": int(user_id)})
+                j = await bot.call_api("get_stranger_info", user_id=int(user_id))
 
                 # 获取成员的昵称
                 name = j.get("nickname", "未知昵称")

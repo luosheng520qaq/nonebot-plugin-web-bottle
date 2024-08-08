@@ -4,7 +4,7 @@ import os
 import random
 from pathlib import Path
 from sqlite3 import Connection
-from typing import Any, Dict, List
+from typing import Any
 
 import aiofiles
 import httpx
@@ -50,7 +50,7 @@ class BottleInfo(BaseModel):
     GroupID: int
     TimeInfo: str
     State: int
-    Images: List[str]
+    Images: list[str]
 
 
 @app.get("/check", response_class=HTMLResponse)
@@ -740,7 +740,7 @@ async def extract_and_join_text_from_message(message_list: list) -> str:
     return "".join(texts)
 
 
-async def serialize_message(message: Message, id, conn) -> List[Dict[str, Any]]:
+async def serialize_message(message: Message, id, conn) -> list[dict[str, Any]]:
     for seg in message:
         if seg.type not in ("text", "image"):
             raise NotSupportMessage("漂流瓶只支持文字和图片~")
