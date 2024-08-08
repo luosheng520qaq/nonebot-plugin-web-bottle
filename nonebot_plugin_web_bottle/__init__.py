@@ -170,13 +170,9 @@ async def _(bot: Bot, event: GroupMessageEvent):
     img_bytes_list = await bottle.get_bottle_images(bottle_data["id"])
 
     try:
-        j = await bot.call_api(
-            api="get_stranger_info", **{"user_id": int(bottle_data["userid"])}
-        )
+        j = await bot.call_api(api="get_stranger_info", **{"user_id": int(bottle_data["userid"])})
 
-        n = await bot.call_api(
-            api="get_group_info", **{"group_id": int(bottle_data["groupid"])}
-        )
+        n = await bot.call_api(api="get_group_info", **{"group_id": int(bottle_data["groupid"])})
         sender_nickname = j["nickname"]
         group_name = n["group_name"]
     except:
@@ -256,8 +252,6 @@ async def _(bot: Bot, event: GroupMessageEvent, foo: Message = CommandArg()):
         content = await serialize_message(ms, id, conn)
         bottle = Bottle(conn)
         time_info = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        a = await bottle.add_pending_bottle(
-            id, foo, event.user_id, event.group_id, time_info
-        )
+        a = await bottle.add_pending_bottle(id, foo, event.user_id, event.group_id, time_info)
         if a:
             await throw.finish(f"丢瓶子成功，请等待管理员审核~、id:{id}")

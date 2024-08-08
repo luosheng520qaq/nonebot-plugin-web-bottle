@@ -100,12 +100,8 @@ async def review_comments(request: Request):
     bottle = Bottle(conn)
     comment = await bottle.get_random_comment_with_state_zero()
     if not comment:
-        return templates.TemplateResponse(
-            "comments.html", {"request": request, "comment": None}
-        )
-    return templates.TemplateResponse(
-        "comments.html", {"request": request, "comment": comment}
-    )
+        return templates.TemplateResponse("comments.html", {"request": request, "comment": None})
+    return templates.TemplateResponse("comments.html", {"request": request, "comment": comment})
 
 
 @app.get("/comments/random")
@@ -279,17 +275,13 @@ class Bottle:
         cursor = conn.cursor()
 
         # 检查 comments 表中是否存在给定的 comment_id
-        cursor.execute(
-            "SELECT COUNT(*) FROM comments WHERE comment_id = ?", (comment_id,)
-        )
+        cursor.execute("SELECT COUNT(*) FROM comments WHERE comment_id = ?", (comment_id,))
         count = cursor.fetchone()[0]
         if count == 0:
             return False
 
         # 更新 comments 表中对应记录的 state
-        cursor.execute(
-            "UPDATE comments SET state = ? WHERE comment_id = ?", (200, comment_id)
-        )
+        cursor.execute("UPDATE comments SET state = ? WHERE comment_id = ?", (200, comment_id))
 
         # 提交事务
         conn.commit()
@@ -303,17 +295,13 @@ class Bottle:
         cursor = conn.cursor()
 
         # 检查 comments 表中是否存在给定的 comment_id
-        cursor.execute(
-            "SELECT COUNT(*) FROM comments WHERE comment_id = ?", (comment_id,)
-        )
+        cursor.execute("SELECT COUNT(*) FROM comments WHERE comment_id = ?", (comment_id,))
         count = cursor.fetchone()[0]
         if count == 0:
             return False
 
         # 更新 comments 表中对应记录的 state
-        cursor.execute(
-            "UPDATE comments SET state = ? WHERE comment_id = ?", (100, comment_id)
-        )
+        cursor.execute("UPDATE comments SET state = ? WHERE comment_id = ?", (100, comment_id))
 
         # 提交事务
         conn.commit()
@@ -327,9 +315,7 @@ class Bottle:
         cursor = conn.cursor()
 
         # 查找所有状态为 200 的评论
-        cursor.execute(
-            "SELECT * FROM comments WHERE id = ? AND state = 200", (bottle_id,)
-        )
+        cursor.execute("SELECT * FROM comments WHERE id = ? AND state = 200", (bottle_id,))
         comments = cursor.fetchall()
 
         # 如果没有找到任何评论，返回空列表
@@ -616,9 +602,7 @@ class Bottle:
             current_up_value = 0
 
         # 修改 approved 表中 bottle_id 对应的 up 值 +1
-        cursor.execute(
-            "UPDATE approved SET up = ? WHERE id = ?", (current_up_value + 1, bottle_id)
-        )
+        cursor.execute("UPDATE approved SET up = ? WHERE id = ?", (current_up_value + 1, bottle_id))
 
         # 提交事务
         conn.commit()
