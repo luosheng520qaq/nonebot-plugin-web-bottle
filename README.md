@@ -45,25 +45,26 @@ http://location:nonebot端口/comments 评论审核
 可自行修改
 ## 关于漂流瓶配置文件：
 为防止过多读取时内存占用过高，一个瓶子内最多允许有两张图片，如果需要更多，请在nonebot配置项写入 
+
 以下配置为插件默认值，如果您认为不需要修改，可以不添加
+```
+# 丢瓶子规则配置
+max_bottle_pic=2    # 丢瓶子允许最多图片数量
+max_bottle_liens=9  # 丢瓶子允许最多文字行数
+max_bottle_word=1200    # 丢瓶子允许最多字符数量
+embedded_help=True  # 开启后，丢瓶子时未添加任何内容，则返回指令帮助
 
-    # 丢瓶子规则配置
-    max_bottle_pic=2  # 丢瓶子允许最多图片数量
-    max_bottle_liens=9  # 丢瓶子允许最多文字行数
-    max_bottle_word=1200  # 丢瓶子允许最多字符数量
-    embedded_help=True  # 开启后，丢瓶子时未添加任何内容，则返回指令帮助
+# 瓶子评论规区则配置
+default_nickname="未知昵称" # 定义获取昵称失败时对评论区用户默认称呼
+bottle_msg_split=True   # 分离瓶子和评论区为两条独立消息
+max_bottle_comments=3   # 捡瓶子最多展示评论条数
 
-    # 捡瓶子规则配置
-    max_bottle_comments=3  # 捡瓶子最多展示评论条数
-    default_nickname="未知昵称"  # 定义获取昵称失败时对评论区用户默认称呼
-    bottle_msg_split=False  # 分离瓶子和评论区为两条独立消息
-
-    # 适配官方Bot或提升响应速度
-    bottle_msg_uname=True  # 为False时关闭发送者昵称获取展示 适用于官方Bot或想要提高响应速度时
-    bottle_msg_gname=True  # 为False时关闭群聊昵称获取展示 同上
-    qq_open_bot=False  # 是否为官方Bot，野生请填False
-    qq_markdown=False  # QQMD适配，请自行申请并修改to_msg.py中的模板
-
+# 适配官方Bot或提升响应速度
+bottle_msg_uname=True   # 为False时关闭发送者昵称获取展示 适用于官方Bot或想要提高响应速度时
+bottle_msg_gname=True   # 为False时关闭群聊昵称获取展示 同上
+qq_open_bot=False    # 是否为官方Bot，野生请填False
+qq_markdown=False   # QQMD适配，请自行申请并修改to_msg.py中的模板
+```
 # 未来计划
 - [ ] 新增一个网页填入id查看漂流瓶详情
 - [✓] 修改漂流瓶投掷者输出方式为 QQ昵称 与 群昵称（已经编写 具体适配情况取决于你的协议端）
