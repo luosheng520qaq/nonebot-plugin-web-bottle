@@ -94,14 +94,15 @@ async def _(bot: Bot, foo: Message = CommandArg()):
 
     message = Message(await get_bottle_info(bot, bottle_data))
     message = await get_bottle_img(message, await bottle.get_bottle_images(bottle_data["id"]))
-    comment = await get_bottle_comment(bot, await bottle.get_comments(int(bottle_data["id"])))
+    comment = await get_bottle_comment(bot, await bottle.get_comments(int(bottle_data["id"])), bottle_data["id"])
     
     # 发送消息
-    if bottle_msg_split:
-        await get_bottle.send(message)
-        message = Message(comment)
-    else:
-        message += Message(comment)
+    if comment:
+        if bottle_msg_split:
+            await get_bottle.send(message)
+            message = Message(comment)
+        else:
+            message += Message(comment)
     await get_bottle.finish(message)
 
 
@@ -145,14 +146,15 @@ async def _(bot: Bot):
 
     message = Message(await get_bottle_info(bot, bottle_data))
     message = await get_bottle_img(message, await bottle.get_bottle_images(bottle_data["id"]))
-    comment = await get_bottle_comment(bot, await bottle.get_comments(int(bottle_data["id"])))
+    comment = await get_bottle_comment(bot, await bottle.get_comments(int(bottle_data["id"])), bottle_data["id"])
     
     # 发送消息
-    if bottle_msg_split:
-        await get_bottle.send(message)
-        message = Message(comment)
-    else:
-        message += Message(comment)
+    if comment:
+        if bottle_msg_split:
+            await get_bottle.send(message)
+            message = Message(comment)
+        else:
+            message += Message(comment)
     await get_bottle.finish(message)
 
 
