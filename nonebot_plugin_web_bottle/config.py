@@ -3,32 +3,24 @@ from pydantic import BaseModel
 
 
 class Config(BaseModel):
-    # 一个瓶子最大的图片数量
-    max_bottle_pic: int = 2
-    # 一个瓶子的最大换行长度
-    max_bottle_liens: int = 9
-    # 瓶子内容最多允许的字数
-    max_bottle_word: int = 1200
-    # 单个瓶子捡取时展示的最大评论数量
-    max_bottle_comments: int = 3
     
-    # 启用漂流瓶玩家昵称获取展示
-    # （例如官方Bot等获取不到昵称，且ID无意义的情况下，可以关闭获取以加快响应速度）
-    bottle_msg_uname: bool = True
-    # 启用漂流瓶群昵称获取展示（同上）
-    bottle_msg_gname: bool = True
-    # 定义默认昵称
-    default_nickname: str = "未知昵称"
-    
-    # 瓶子本体内容与评论分段发送
-    bottle_msg_split: bool = True
-    # 在丢瓶子未填写内容时回复帮助文本
-    embedded_help: bool = True
-    # QQ开放平台的bot请启用
-    qq_open_bot: bool = True
-    # QQ通过的MD适配
-    # 请根据自己申请的MD自行修改to_msg中MD模板格式
-    qq_markdown: bool = False
+    # 丢瓶子规则配置
+    max_bottle_pic: int = 2    # 丢瓶子允许最多图片数量
+    max_bottle_liens: int = 9  # 丢瓶子允许最多文字行数
+    max_bottle_word: int = 1200    # 丢瓶子允许最多字符数量
+    embedded_help: bool = True  # 开启后，丢瓶子时未添加任何内容，则返回指令帮助
+
+    # 瓶子评论规区则配置
+    default_nickname: str = "未知昵称" # 定义获取昵称失败时对评论区用户默认称呼
+    bottle_msg_split: bool = True   # 分离瓶子和评论区为两条独立消息
+    max_bottle_comments: int = 3   # 捡瓶子最多展示评论条数
+
+    # 适配官方Bot或提升响应速度
+    bottle_msg_uname: bool = True   # 为False时关闭发送者昵称获取展示 适用于官方Bot或想要提高响应速度时
+    bottle_msg_gname: bool = True   # 为False时关闭群聊昵称获取展示 同上
+    qq_open_bot: bool = False    # 是否为官方Bot，野生请填False
+    qq_markdown: bool = False   # QQMD适配，请自行申请并修改to_msg.py中的模板
+
 
 
 config = get_plugin_config(Config)

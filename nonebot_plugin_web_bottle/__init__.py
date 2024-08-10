@@ -1,4 +1,3 @@
-import base64
 import re
 from datetime import datetime
 
@@ -8,6 +7,8 @@ from nonebot.params import CommandArg
 from nonebot.plugin import PluginMetadata
 
 from . import data_deal
+from .to_msg import get_bottle_info, get_bottle_img, get_bottle_comment
+from .web_bottle import Bottle, id_add, serialize_message
 from .config import (
     max_bottle_pic,
     max_bottle_liens,
@@ -18,8 +19,6 @@ from .config import (
     qq_markdown,
     Config
     )
-from .to_msg import get_bottle_info, get_bottle_img, get_bottle_comment
-from .web_bottle import Bottle, id_add, serialize_message
 
 __plugin_meta__ = PluginMetadata(
     name="漂流瓶",
@@ -73,16 +72,12 @@ async def _(bot: Bot, foo: Message = CommandArg()):
             FROM pending
             WHERE id = ?
         """
-
         # 执行查询
         cursor.execute(query, (a,))
-
         # 获取查询结果
         result = cursor.fetchone()
-
         # 关闭游标
         cursor.close()
-
         # 返回查询结果，如果没有找到则返回None
         c = result[0]
         if c == 100:  # noqa: PLR2004

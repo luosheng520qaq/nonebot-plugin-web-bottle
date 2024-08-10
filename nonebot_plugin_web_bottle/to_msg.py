@@ -1,5 +1,5 @@
 import base64
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageSegment
+from nonebot.adapters.onebot.v11 import Bot, Message, MessageSegment
 from .config import (
     max_bottle_comments,
     bottle_msg_uname,
@@ -58,6 +58,8 @@ async def get_bottle_comment(bot: Bot, comments: str, bid) -> str:
     '''
     格式化瓶子的评论
     '''
+    if not comments:
+        return ''
     # 分割字符串以获取每条评论
     comment_lines = comments.split("\n")
 
