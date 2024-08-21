@@ -3,9 +3,12 @@ body {
     font-family: 'Comic Sans MS', cursive, sans-serif; /* 更换为可爱的字体 */
     background: url('/static/images/background.jpg') no-repeat center center fixed;
     background-size: cover;
+    background-attachment: fixed;
     margin: 0;
     padding: 0;
     color: #ff6666; /* 更改文字颜色为粉红色 */
+    height: 100;
+    overflow: hidden;
 }
 
 h1 {
@@ -42,6 +45,8 @@ button {
     border-radius: 20px; /* 增加圆角 */
     cursor: pointer;
     font-size: 1em;
+    background-position: center;
+    background-size: contain;
 }
 
 button:hover {

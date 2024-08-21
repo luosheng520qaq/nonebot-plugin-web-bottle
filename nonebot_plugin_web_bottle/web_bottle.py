@@ -1,31 +1,36 @@
 import asyncio
 import base64
 import random
-from typing import Any, Dict, List
+from http import HTTPStatus
+from pathlib import Path
+from sqlite3 import Connection
+from typing import Any, Literal
 
 import aiofiles
 import httpx
-from fastapi import HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from nonebot import get_driver, get_app
-from nonebot import require
+from nonebot import get_app, get_driver, require
 from nonebot.adapters.onebot.v11 import Message, MessageSegment
 from nonebot.log import logger
 from pydantic import BaseModel
-from pathlib import Path
-from . import data_deal
-import os
+from starlette.templating import _TemplateResponse
 
-from nonebot import require
+from . import data_deal
+from .config import max_bottle_pic
 
 require("nonebot_plugin_localstore")
-import nonebot_plugin_localstore as store
 
-from sqlite3 import Connection
+import nonebot_plugin_localstore as store  # noqa: E402
 
 app = get_app()
+
+if not isinstance(app, FastAPI):
+    msg = "本插件需要 FastAPI 驱动器才能正常运行"
+    raise RuntimeError(msg)  # noqa: TRY004
+
 driver = get_driver()
 
 # 获取当前文件所在目录
@@ -47,52 +52,51 @@ class BottleInfo(BaseModel):
     GroupID: int
     TimeInfo: str
     State: int
-    Images: List[str]
+    Images: list[str]
 
 
 @app.get("/check", response_class=HTMLResponse)
-async def read_item(request: Request):
+async def read_item(request: Request) -> _TemplateResponse:
     return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.get("/bottles/random", response_model=BottleInfo)
-async def get_random_bottle():
+async def get_random_bottle() -> BottleInfo:
     bottle = Bottle(conn=data_deal.conn_bottle)
     b = await bottle.random_get_bottle()
     if not b:
         raise HTTPException(status_code=404, detail="No bottles found")
 
     images = await bottle.get_bottle_images(b["id"])
-    images_base64 = [base64.b64encode(img).decode('utf-8') for img in images]
+    images_base64 = [base64.b64encode(img).decode("utf-8") for img in images]
 
-    bottle_info = BottleInfo(
+    return BottleInfo(
         ID=b["id"],
         Content=b["content"],
         UserID=b["userid"],
         GroupID=b["groupid"],
         TimeInfo=b["timeinfo"],
         State=b["state"],
-        Images=images_base64
+        Images=images_base64,
     )
-    return bottle_info
 
 
 @app.post("/bottles/approve/{id}")
-async def approve_bottle(id: int):
+async def approve_bottle(id: int) -> dict[str, str]:
     b = Bottle(conn=data_deal.conn_bottle)
     await b.add_approved_bottle(id)
     return {"status": "approved"}
 
 
 @app.post("/bottles/refuse/{id}")
-async def refuse_bottle(id: int):
+async def refuse_bottle(id: int) -> dict[str, str]:
     b = Bottle(conn=data_deal.conn_bottle)
     await b.refuse_bottle(id)
     return {"status": "refused"}
 
 
 @app.get("/comments", response_class=HTMLResponse)
-async def review_comments(request: Request):
+async def review_comments(request: Request) -> _TemplateResponse:
     conn = data_deal.conn_bottle
     bottle = Bottle(conn)
     comment = await bottle.get_random_comment_with_state_zero()
@@ -102,7 +106,7 @@ async def review_comments(request: Request):
 
 
 @app.get("/comments/random")
-async def get_random_comment():
+async def get_random_comment() -> dict[str, Any]:
     conn = data_deal.conn_bottle
     bottle = Bottle(conn)
     comment = await bottle.get_random_comment_with_state_zero()
@@ -112,7 +116,7 @@ async def get_random_comment():
 
 
 @app.post("/comments/approve/{comment_id}")
-async def approve_comment(comment_id: int):
+async def approve_comment(comment_id: int) -> dict[str, str]:
     conn = data_deal.conn_bottle
     bottle = Bottle(conn)
     success = await bottle.pass_comment_state(comment_id)
@@ -122,7 +126,7 @@ async def approve_comment(comment_id: int):
 
 
 @app.post("/comments/refuse/{comment_id}")
-async def refuse_comment(comment_id: int):
+async def refuse_comment(comment_id: int) -> dict[str, str]:
     bottle = Bottle(data_deal.conn_bottle)
     success = await bottle.refuse_comment_state(comment_id)
     if not success:
@@ -132,22 +136,18 @@ async def refuse_comment(comment_id: int):
 
 @driver.on_startup
 def _():
-    logger.info('成功加载 web')
+    logger.info("成功加载 web")
 
 
-class NotSupportMessage(Exception):
-    def __init__(self, message):
-        super().__init__(message)
+class NotSupportMessageError(Exception):
+    def __init__(self, *args: object):
+        super().__init__(*args)
 
     def __str__(self) -> str:
         return super().__str__()
 
 
-
-
-
-
-async def store_image_data(image_id: int, image_data: bytes, conn: Connection):
+async def store_image_data(image_id: int, image_data: bytes, conn: Connection) -> None:
     """
     存储图像数据到数据库。
     :param image_id: 图像对应的 ID
@@ -157,19 +157,20 @@ async def store_image_data(image_id: int, image_data: bytes, conn: Connection):
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO images (id, data) VALUES (?, ?)",
-        (image_id, image_data)  # 直接存储传入的 image_id
+        (image_id, image_data),  # 直接存储传入的 image_id
     )
     conn.commit()
 
-async def cache_file(msg: Message, image_id: int, conn: Connection):
+
+async def cache_file(msg: Message, image_id: int, conn: Connection) -> None:
     """
     缓存消息中的图片数据到数据库，最多只缓存两张图片。
     :param msg: 消息对象
     :param image_id: 图像对应的 ID
     :param conn: 数据库连接
     """
-    semaphore = asyncio.Semaphore(2)# 控制并发任务数量
-    max_number = get_driver().config.dict().get("max_bottle_pic", 2)
+    semaphore = asyncio.Semaphore(2)  # 控制并发任务数量
+    max_number = max_bottle_pic
     async with httpx.AsyncClient() as client:
         tasks = [
             cache_image_url(seg, client, image_id, conn, semaphore)
@@ -178,7 +179,14 @@ async def cache_file(msg: Message, image_id: int, conn: Connection):
         ]
         await asyncio.gather(*tasks)
 
-async def cache_image_url(seg: MessageSegment, client: httpx.AsyncClient, image_id: int, conn: Connection, semaphore: asyncio.Semaphore):
+
+async def cache_image_url(
+    seg: MessageSegment,
+    client: httpx.AsyncClient,
+    image_id: int,
+    conn: Connection,
+    semaphore: asyncio.Semaphore,
+) -> None:
     """
     缓存单个图片 URL 到数据库。
     :param seg: 包含图片 URL 的消息段
@@ -200,17 +208,18 @@ async def cache_image_url(seg: MessageSegment, client: httpx.AsyncClient, image_
         except httpx.TimeoutException:
             return
 
-        if r.status_code != 200 or not data:
+        if r.status_code != HTTPStatus.OK or not data:
             return
         await store_image_data(image_id, data, conn)
         # 设置文件名时使用原始的 image_id
         seg.data = {"file": f"image_{image_id}"}
 
+
 class Bottle:
-    def __init__(self, conn):
+    def __init__(self, conn: Connection):
         self.conn = conn
 
-    async def get_random_comment_with_state_zero(self):
+    async def get_random_comment_with_state_zero(self) -> None | dict[str, Any]:
         """
         随机获取一个 state 为 0 的评论并返回它的详情
         """
@@ -225,7 +234,7 @@ class Bottle:
             return None
 
         # 随机选择一个评论
-        random_comment = random.choice(comments)
+        random_comment = random.choice(comments)  # noqa: S311
 
         # 返回随机评论的详情
         return {
@@ -233,10 +242,10 @@ class Bottle:
             "bottle_id": random_comment[1],
             "content": random_comment[2],
             "state": random_comment[3],
-            "uid": random_comment[4]
+            "uid": random_comment[4],
         }
 
-    async def get_comments(self, id):
+    async def get_comments(self, id: int) -> str:
         """
         获取 comments 表中所有 id 对应的记录，且 state 为 200，
         并将结果以 'uid: content' 的格式返回，每条记录之间用换行符分隔。
@@ -254,12 +263,10 @@ class Bottle:
 
         # 如果找到了记录，则按指定格式组合结果
         if rows:
-            formatted_results = "\n".join([f"{row[0]}: {row[1]}" for row in rows])
-            return formatted_results
-        else:
-            return ""
+            return "\n".join([f"{row[0]}: {row[1]}" for row in rows])
+        return ""
 
-    async def pass_comment_state(self, comment_id):
+    async def pass_comment_state(self, comment_id: int) -> bool:
         """
         更新评论状态 200
         """
@@ -279,7 +286,7 @@ class Bottle:
         conn.commit()
         return True
 
-    async def refuse_comment_state(self, comment_id):
+    async def refuse_comment_state(self, comment_id: int) -> bool:
         """
         更新评论状态 100
         """
@@ -299,7 +306,7 @@ class Bottle:
         conn.commit()
         return True
 
-    async def find_all_pass_comments(self, bottle_id):
+    async def find_all_pass_comments(self, bottle_id: int) -> list[dict[str, Any]]:
         """
         查找所有状态为 200 的评论（即已通过审核的评论）
         """
@@ -315,15 +322,18 @@ class Bottle:
             return []
 
         # 返回评论的详情列表
-        return [{
-            "comment_id": comment[0],
-            "bottle_id": comment[1],
-            "content": comment[2],
-            "state": comment[3],
-            "uid": comment[4]
-        } for comment in comments]
+        return [
+            {
+                "comment_id": comment[0],
+                "bottle_id": comment[1],
+                "content": comment[2],
+                "state": comment[3],
+                "uid": comment[4],
+            }
+            for comment in comments
+        ]
 
-    async def add_comment_if_approved(self, bottle_id, text, uid):
+    async def add_comment_if_approved(self, bottle_id: int, text: str, uid: str) -> bool:
         """
         评论瓶子
         """
@@ -344,14 +354,16 @@ class Bottle:
         new_comment_id = max_comment_id + 1
 
         # 向 comments 表中添加评论
-        cursor.execute("INSERT INTO comments (comment_id, id, content, state, uid) VALUES (?, ?, ?, ?, ?)",
-                       (new_comment_id, bottle_id, text, 0, uid))
+        cursor.execute(
+            "INSERT INTO comments (comment_id, id, content, state, uid) VALUES (?, ?, ?, ?, ?)",
+            (new_comment_id, bottle_id, text, 0, uid),
+        )
 
         # 提交事务
         conn.commit()
         return True
 
-    async def get_approved_bottle_by_id(self, bottle_id):
+    async def get_approved_bottle_by_id(self, bottle_id: int) -> dict[str, Any] | None:
         """
         根据给定的ID获取一个已过审的瓶子
         """
@@ -365,7 +377,7 @@ class Bottle:
         result = self.conn.execute(select_sql, (bottle_id,))
         row = result.fetchone()
 
-        print(f"Row fetched: {row}")  # 调试信息
+        logger.debug(f"Row fetched: {row}")  # 调试信息
 
         if row:
             id, content, userid, groupid, timeinfo = row
@@ -374,12 +386,11 @@ class Bottle:
                 "content": content,
                 "userid": userid,
                 "groupid": groupid,
-                "timeinfo": timeinfo
+                "timeinfo": timeinfo,
             }
-        else:
-            return None
+        return None
 
-    async def random_get_approves_bottle(self):
+    async def random_get_approves_bottle(self) -> None | dict[str, Any]:
         """
         随机获取一个已过审的瓶子
         """
@@ -388,25 +399,25 @@ class Bottle:
         row_count_sql = "SELECT COUNT(*) FROM approved"
         row_count = self.conn.execute(row_count_sql)
         row_count = (row_count.fetchone())[0]
-        print(f"Total rows in approved table: {row_count}")  # 调试信息
+        logger.debug(f"Total rows in approved table: {row_count}")  # 调试信息
 
         if row_count == 0:
             return None
 
         # 生成随机索引
-        random_index = random.randint(0, row_count - 1)
-        print(f"Random index generated: {random_index}")  # 调试信息
+        random_index = random.randint(0, row_count - 1)  # noqa: S311
+        logger.debug(f"Random index generated: {random_index}")  # 调试信息
 
         # 查询特定行
-        select_sql = f"""
+        select_sql = """
         SELECT id, content, userid, groupid, timeinfo
         FROM approved
-        LIMIT 1 OFFSET {random_index}
+        LIMIT 1 OFFSET ?
         """
-        result = self.conn.execute(select_sql)
+        result = self.conn.execute(select_sql, (random_index,))
         row = result.fetchone()
 
-        print(f"Row fetched: {row}")  # 调试信息
+        logger.debug(f"Row fetched: {row}")  # 调试信息
 
         if row:
             id, content, userid, groupid, timeinfo = row
@@ -415,12 +426,11 @@ class Bottle:
                 "content": content,
                 "userid": userid,
                 "groupid": groupid,
-                "timeinfo": timeinfo
+                "timeinfo": timeinfo,
             }
-        else:
-            return None
+        return None
 
-    async def fetch_bottles(self, id):
+    async def fetch_bottles(self, id: int) -> Any:  # noqa: ANN401
         """
         异步查询某个漂流瓶。
         """
@@ -433,10 +443,11 @@ class Bottle:
         # 执行查询
         cursor = self.conn.cursor()
         cursor.execute(select_query, (int(id),))
-        result = cursor.fetchone()
-        return result
+        return cursor.fetchone()
 
-    async def add_pending_bottle(self, id, message, userid, groupid, timeinfo):
+    async def add_pending_bottle(
+        self, id: int, message: str, userid: str, groupid: str, timeinfo: str
+    ) -> Literal[True]:
         """
         异步增加待审核的漂流瓶。
         """
@@ -447,18 +458,27 @@ class Bottle:
             "group_id": str(groupid),
             "content": message,
             "time": str(timeinfo),
-            "state": 0
+            "state": 0,
         }
         sql = """
         INSERT INTO pending (id, content, userid, groupid, timeinfo, state)
         VALUES (?, ?, ?, ?, ?, ?)
         """
-        self.conn.execute(sql,
-                          (data["id"], data["content"], data["user_id"], data["group_id"], data["time"], data["state"]))
+        self.conn.execute(
+            sql,
+            (
+                data["id"],
+                data["content"],
+                data["user_id"],
+                data["group_id"],
+                data["time"],
+                data["state"],
+            ),
+        )
         self.conn.commit()
         return True
 
-    async def refuse_bottle(self, id):
+    async def refuse_bottle(self, id: int) -> Literal[True]:
         """
         异步拒绝待审核的漂流瓶，并将相关图片数据设置为 None。
         """
@@ -472,11 +492,10 @@ class Bottle:
         SET state = ?
         WHERE id = ?;
         """
-        id_to_find = int(id)  # 替换为实际的 id 值
 
         # 更新 pending 表的状态
         new_state = 100
-        cursor.execute(update_pending_query, (new_state, id_to_find))
+        cursor.execute(update_pending_query, (new_state, id))
 
         # 定义更新 images 表数据的 SQL 语句
         update_images_query = """
@@ -486,14 +505,14 @@ class Bottle:
         """
 
         # 更新 images 表中的数据
-        cursor.execute(update_images_query, (id_to_find,))
+        cursor.execute(update_images_query, (id,))
 
         # 提交更改
         conn.commit()
 
         return True
 
-    async def add_approved_bottle(self, id):
+    async def add_approved_bottle(self, id: int) -> None:
         """
         异步增加已通过审核的漂流瓶。
         """
@@ -522,12 +541,9 @@ class Bottle:
         WHERE id = ?;
         """
 
-        # 假设 id 是要查询的具体值
-        id_to_find = int(id)  # 替换为实际的 id 值
-
         try:
             # 执行查询
-            cursor.execute(select_query, (id_to_find,))
+            cursor.execute(select_query, (id,))
             result = cursor.fetchone()
 
             if result:
@@ -536,19 +552,20 @@ class Bottle:
 
                 # 更新 pending 表的状态
                 new_state = 200
-                cursor.execute(update_query, (new_state, id_to_find))
+                cursor.execute(update_query, (new_state, id))
 
                 # 提交事务
                 conn.commit()
-                print("Data inserted and state updated successfully.")
+                logger.debug("Data inserted and state updated successfully.")
             else:
-                print("No data found for the given ID.")
+                logger.debug("No data found for the given ID.")
 
-        except Exception as e:
-            print(f"An error occurred: {e}")
+        except Exception as e:  # noqa: BLE001
+            logger.error("An error occurred: ")
+            logger.exception(e)
             conn.rollback()
 
-    async def up_bottle(self, bottle_id, uid):
+    async def up_bottle(self, bottle_id: int, uid: str) -> tuple[Literal[False], None] | tuple[Literal[True], Any]:
         """
         点赞某个瓶子
         """
@@ -595,14 +612,17 @@ class Bottle:
         # 更新 user_up 表中 uid 对应的列表，添加 bottle_id
         ids_list.append(str(bottle_id))
         updated_ids = ",".join(ids_list)
-        cursor.execute("INSERT OR REPLACE INTO user_up (uid, ids) VALUES (?, ?)", (uid, updated_ids))
+        cursor.execute(
+            "INSERT OR REPLACE INTO user_up (uid, ids) VALUES (?, ?)",
+            (uid, updated_ids),
+        )
 
         # 提交事务
         conn.commit()
 
         return True, new_up_value
 
-    async def random_get_bottle(self):
+    async def random_get_bottle(self) -> None | dict[str, Any]:
         """
         随机获取一个待审的瓶子（state 等于 0）
         """
@@ -611,25 +631,25 @@ class Bottle:
         row_count_sql = "SELECT COUNT(*) FROM pending WHERE state = 0"
         row_count = self.conn.execute(row_count_sql)
         row_count = (row_count.fetchone())[0]
-        print(f"Total rows in pending table with state 0: {row_count}")  # 调试信息
+        logger.debug(f"Total rows in pending table with state 0: {row_count}")  # 调试信息
         if row_count == 0:
             return None
 
         # 生成随机索引
-        random_index = random.randint(0, row_count - 1)
-        print(f"Random index generated: {random_index}")  # 调试信息
+        random_index = random.randint(0, row_count - 1)  # noqa: S311
+        logger.debug(f"Random index generated: {random_index}")  # 调试信息
 
         # 查询特定行
-        select_sql = f"""
+        select_sql = """
         SELECT id, content, userid, groupid, timeinfo, state
         FROM pending
         WHERE state = 0
-        LIMIT 1 OFFSET {random_index}
+        LIMIT 1 OFFSET ?
         """
-        result = self.conn.execute(select_sql)
+        result = self.conn.execute(select_sql, (random_index,))
         row = result.fetchone()
 
-        print(f"Row fetched: {row}")  # 调试信息
+        logger.debug(f"Row fetched: {row}")  # 调试信息
 
         if row:
             id, content, userid, groupid, timeinfo, state = row
@@ -639,12 +659,11 @@ class Bottle:
                 "userid": userid,
                 "groupid": groupid,
                 "timeinfo": timeinfo,
-                "state": state
+                "state": state,
             }
-        else:
-            return None
+        return None
 
-    async def get_bottle_images(self, id):
+    async def get_bottle_images(self, id: int) -> list[bytes]:
         """
         获取图片
         """
@@ -668,51 +687,29 @@ class Bottle:
         # 如果找到了记录，则返回 Blob 数据作为字节列表
         if rows:
             return [row[0] for row in rows]
-        else:
-            return []
+        return []
 
-plugin_data = store.get_data_dir('nonebot_plugin_web_bottle')
-file_path = os.path.join(plugin_data, 'bottle_id.txt')
 
-async def id_add():
+plugin_data = store.get_data_dir("nonebot_plugin_web_bottle")
+file_path = plugin_data / "bottle_id.txt"
+
+
+async def id_add() -> int:
     # Ensure the directory exists
-    os.makedirs(plugin_data, exist_ok=True)
+    plugin_data.mkdir(exist_ok=True)
 
     # Check if the file exists, if not, create it with an initial value of 0
-    if not os.path.exists(file_path):
-        async with aiofiles.open(file_path, 'w+', encoding='utf_8') as f:
-            await f.write('0')
+    if not file_path.exists():
+        async with aiofiles.open(file_path, "w+", encoding="utf_8") as f:
+            await f.write("0")
             await f.close()
 
     # Read the current ID, increment, and write back the new value
-    async with aiofiles.open(file_path, 'r+', encoding='utf_8') as f:
+    async with aiofiles.open(file_path, "r+", encoding="utf_8") as f:
         k = int(await f.read()) + 1
         await f.close()
 
-    async with aiofiles.open(file_path, 'w+', encoding='utf_8') as b:
-        await b.write(str(k))
-        await b.close()
-
-    return k
-
-file_path = os.path.join(plugin_data, 'bottle_id.txt')
-
-async def id_add():
-    # Ensure the directory exists
-    os.makedirs(plugin_data, exist_ok=True)
-
-    # Check if the file exists, if not, create it with an initial value of 0
-    if not os.path.exists(file_path):
-        async with aiofiles.open(file_path, 'w+', encoding='utf_8') as f:
-            await f.write('0')
-            await f.close()
-
-    # Read the current ID, increment, and write back the new value
-    async with aiofiles.open(file_path, 'r+', encoding='utf_8') as f:
-        k = int(await f.read()) + 1
-        await f.close()
-
-    async with aiofiles.open(file_path, 'w+', encoding='utf_8') as b:
+    async with aiofiles.open(file_path, "w+", encoding="utf_8") as b:
         await b.write(str(k))
         await b.close()
 
@@ -729,19 +726,14 @@ async def extract_and_join_text_from_message(message_list: list) -> str:
     返回:
     str: 合并后的文本字符串。
     """
-    texts = []
-    for segment in message_list:
-        if segment['type'] == 'text':
-            texts.append(segment['data']['text'])
-    return ''.join(texts)
+    return "".join(segment["data"]["text"] for segment in message_list if segment["type"] == "text")
 
 
-async def serialize_message(message: Message, id, conn) -> List[Dict[str, Any]]:
+async def serialize_message(message: Message, id: int, conn: Connection) -> list[dict[str, Any]]:
     for seg in message:
         if seg.type not in ("text", "image"):
-            raise NotSupportMessage("漂流瓶只支持文字和图片~")
+            msg = "漂流瓶只支持文字和图片~"
+            raise NotSupportMessageError(msg)
 
     await cache_file(msg=message, image_id=id, conn=conn)
     return [seg.__dict__ for seg in message]
-
-
