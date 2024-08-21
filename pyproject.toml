@@ -19,6 +19,26 @@ license = { text = "MIT" }
 homepage = "https://github.com/luosheng520qaq/nonebot-plugin-web-bottle/"
 repository = "https://github.com/luosheng520qaq/nonebot-plugin-web-bottle/"
 
+<<<<<<< HEAD
+[tool.poetry.dependencies]
+python = "^3.11"
+nonebot2 = {extras = ["fastapi"], version = "^2.0.0"}
+aiofiles = ">=0.8.0"
+nonebot_plugin_localstore = ">=0.7.0"
+httpx = ">=0.23.0"
+fastapi = ">=0.110.0"
+pydantic = ">=1.10.11"
+nonebot-adapter-onebot >= "2.4.4"
+
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "nonebot2[fastapi,uvicorn]>=2.3.2",
+    "nonebot-adapter-onebot>=2.4.4",
+]
+
+=======
+>>>>>>> a52cb1d4c4ab31cd8722d2509fd4543ac5942b68
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"

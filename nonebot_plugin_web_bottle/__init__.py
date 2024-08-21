@@ -1,3 +1,14 @@
+<<<<<<< HEAD
+from nonebot.plugin import PluginMetadata
+from nonebot import on_command, on_fullmatch, get_driver
+from nonebot.adapters.onebot.v11 import Message, GroupMessageEvent, Bot, MessageSegment
+from nonebot.params import CommandArg
+import base64
+import re
+from datetime import datetime
+from .web_bottle import Bottle, id_add,serialize_message
+from . import data_deal
+=======
 import re
 from datetime import datetime
 
@@ -19,6 +30,7 @@ from .config import (
     qq_markdown,
     Config
     )
+>>>>>>> a52cb1d4c4ab31cd8722d2509fd4543ac5942b68
 
 __plugin_meta__ = PluginMetadata(
     name="漂流瓶",
@@ -31,9 +43,17 @@ __plugin_meta__ = PluginMetadata(
     """,
     type="application",
     # 发布必填，当前有效类型有：`library`（为其他插件编写提供功能），`application`（向机器人用户提供功能）。
+<<<<<<< HEAD
+
+    homepage="https://github.com/luosheng520qaq/nonebot_plugin_web_bottle",
+    # 发布必填。
+
+
+=======
     homepage="https://github.com/luosheng520qaq/nonebot-plugin-web-bottle",
     # 发布必填。
     config=Config,
+>>>>>>> a52cb1d4c4ab31cd8722d2509fd4543ac5942b68
     supported_adapters={"~onebot.v11"},
     # 支持的适配器集合，其中 `~` 在此处代表前缀 `nonebot.adapters.`，其余适配器亦按此格式填写。
     # 若插件可以保证兼容所有适配器（即仅使用基本适配器功能）可不填写，否则应该列出插件支持的适配器。
