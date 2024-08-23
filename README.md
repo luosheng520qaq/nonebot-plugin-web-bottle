@@ -1,22 +1,43 @@
-# nonebot_plugin_web_bottle
-# 这是什么？
-一个基于nonebot2与onebotv11 使用fastapi驱动的漂流瓶插件，有一个简单的web用于审核用户提交的漂流瓶
-# 如何安装？
-使用pip或者nb指令
-```
-pip install nonebot-plugin-web-bottle
+<!-- markdownlint-disable MD033 MD036 MD041  -->
+<div align="center">
+  <a href="https://v2.nonebot.dev/store">
+    <img src="./img/NoneBotPlugin.png" width="300" alt="logo" />
+  </a>
 
+
+# nonebot_plugin_web_bottle
+![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)
+![PyPI - Version](https://img.shields.io/pypi/v/nonebot-plugin-web-bottle)
+[![pdm-managed](https://img.shields.io/endpoint?url=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2Fpdm-project%2F.github%2Fbadge.json)](https://pdm-project.org)
+
+✨一个基于nonebot2与onebotv11 使用fastapi驱动的漂流瓶插件，有一个简单的web用于审核用户提交的漂流瓶✨
+
+
+</div>
+
+
+# 如何安装？
+**Pypi**
+```bash
+pip install nonebot-plugin-web-bottle
+```
+
+**Nonebot**
+```bash
 nb plugin install nonebot-plugin-web-bottle
 ```
+
 # 目前实现了什么？
-## 在QQ内
-### 丢瓶子
-### 捡瓶子
-### 评论漂流瓶 [编号] [评论内容]
-### 点赞漂流瓶 [编号]
-## 在网页端
-### 审核漂流瓶
-### 审核评论
+- [x] 在QQ内
+- [x] 丢瓶子
+- [x] 捡瓶子
+- [x] 评论漂流瓶 [编号] [评论内容]
+- [x] 点赞漂流瓶 [编号]
+- [x] 在网页端
+- [x] 审核漂流瓶
+- [x] 审核评论
+
+
 # 效果图：
 ![Image of Yaktocat](https://github.com/luosheng520qaq/nonebot_plugin_web_bottle/blob/master/example/bottles.png)
 ![Image of Yaktocat](https://github.com/luosheng520qaq/nonebot_plugin_web_bottle/blob/master/example/comments.png)
