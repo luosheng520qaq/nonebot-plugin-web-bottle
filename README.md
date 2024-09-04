@@ -17,6 +17,7 @@
 
 
 # 如何安装？
+（建议使用pip下载后手动在github页面下载源代码并将插件放入插件目录中以使用最新的更改）
 **Pypi**
 ```bash
 pip install nonebot-plugin-web-bottle
