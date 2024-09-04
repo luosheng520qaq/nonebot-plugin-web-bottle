@@ -38,6 +38,7 @@ body {
     flex-wrap: wrap;
     gap: 10px;
     margin: 10px 0;
+    position: relative; /* 新增部分 */
 }
 
 #images img {
@@ -47,6 +48,21 @@ body {
     border-radius: 20px; /* 增加圆角 */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 添加阴影 */
 }
+
+.zoomed {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) scale(10) !important; /* 放大5倍 */
+    max-width: 100% !important;
+    max-height: 100% !important;
+    z-index: 1000 !important;
+    border: 6px solid #ff6666 !important;
+    border-radius: 30px !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+
 
 button {
     padding: 10px 20px;
@@ -75,7 +91,6 @@ button:nth-of-type(2) {
     color: white;
 }
 
-/* 新增部分 */
 #bottle span {
     font-weight: bold;
     color: #ff6666;
