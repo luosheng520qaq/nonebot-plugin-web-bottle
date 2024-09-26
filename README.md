@@ -89,7 +89,7 @@ qq_markdown=False   # QQMD适配，请自行申请并修改to_msg.py中的模板
 
 官方bot仅试过使用 [Gensokyo](https://github.com/Hoshinonyaruko/Gensokyo) 正常运行，野生机器人推荐使用NapCat，LLOneBot ,Lagrange 等
 
-以下是适合本项目的markdown模板和实际效果展示，你需要在QQ开放平台>bot>开发>高阶能力下进行申请，过审后将平台分配的模板ID填写在本项目的tomsg.py模块中：
+以下是适合本项目的markdown模板和实际效果展示，你需要在QQ开放平台>bot>开发>高阶能力下进行申请，过审后将平台分配的模板ID填写在本项目的tomsg.py模块中（此外，涉及模板图片和头像获取转换，您还需要参考Gensokyo接口文档，在本模块内填写所需IP和端口）：
 <table>
   <tr>
     <td>
