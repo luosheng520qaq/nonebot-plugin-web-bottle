@@ -94,14 +94,14 @@ qq_markdown=False   # QQMD适配，请自行申请并修改to_msg.py中的模板
   <tr>
     <td>
       <img src="https://github.com/youlanan/nonebot-plugin-web-bottle/blob/master/example/md02.png" width="240" height="160">
-      <br>评论区
+      <br>瓶子本体
     </td>
     <td rowspan="2"><img src="https://github.com/youlanan/nonebot-plugin-web-bottle/blob/master/example/md03.jpg" width="240" height="480"></td>
   </tr>
   <tr>
     <td>
       <img src="https://github.com/youlanan/nonebot-plugin-web-bottle/blob/master/example/md01.png" width="240" height="240">
-      <br>瓶子本体
+      <br>评论区
     </td>
   </tr>
 </table>
