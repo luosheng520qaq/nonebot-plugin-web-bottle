@@ -3,12 +3,8 @@ import sqlite3
 from nonebot import get_driver, logger, require
 
 require("nonebot_plugin_localstore")
-<<<<<<< HEAD
-import nonebot_plugin_localstore as store
-=======
 
 import nonebot_plugin_localstore as store  # noqa: E402
->>>>>>> a52cb1d4c4ab31cd8722d2509fd4543ac5942b68
 
 drive = get_driver()
 

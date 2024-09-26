@@ -18,7 +18,6 @@ class Config(BaseModel):
     # 适配官方Bot或提升响应速度
     bottle_msg_uname: bool = True   # 为False时关闭发送者昵称获取展示 适用于官方Bot或想要提高响应速度时
     bottle_msg_gname: bool = True   # 为False时关闭群聊昵称获取展示 同上
-    qq_open_bot: bool = False    # 是否为官方Bot，野生请填False
     qq_markdown: bool = False   # QQMD适配，请自行申请并修改to_msg.py中的模板
 
 
@@ -48,7 +47,5 @@ bottle_msg_split = config.bottle_msg_split
 '''瓶子本体内容与评论分段发送'''
 embedded_help = config.embedded_help
 '''在丢瓶子未填写内容时回复帮助文本'''
-qq_open_bot = config.qq_open_bot
-'''官方Bot适配'''
 qq_markdown = config.qq_markdown
 '''官方MD适配'''
