@@ -1,36 +1,22 @@
-<<<<<<< HEAD
-from nonebot.plugin import PluginMetadata
-from nonebot import on_command, on_fullmatch, get_driver
-from nonebot.adapters.onebot.v11 import Message, GroupMessageEvent, Bot, MessageSegment
-from nonebot.params import CommandArg
-import base64
-import re
-from datetime import datetime
-from .web_bottle import Bottle, id_add,serialize_message
-from . import data_deal
-=======
 import re
 from datetime import datetime
 
 from nonebot import on_command, on_fullmatch
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, Message, MessageSegment
 from nonebot.params import CommandArg
 from nonebot.plugin import PluginMetadata
+from nonebot.adapters.onebot.v11 import Message, GroupMessageEvent, Bot
 
 from . import data_deal
-from .to_msg import get_bottle_info, get_bottle_img, get_bottle_comment
 from .web_bottle import Bottle, id_add, serialize_message
+from .to_msg import botte_routing
 from .config import (
-    max_bottle_pic,
+    bottle_msg_split,
     max_bottle_liens,
     max_bottle_word,
-    bottle_msg_split,
+    max_bottle_pic,
     embedded_help,
-    qq_open_bot,
-    qq_markdown,
     Config
     )
->>>>>>> a52cb1d4c4ab31cd8722d2509fd4543ac5942b68
 
 __plugin_meta__ = PluginMetadata(
     name="漂流瓶",
@@ -43,17 +29,9 @@ __plugin_meta__ = PluginMetadata(
     """,
     type="application",
     # 发布必填，当前有效类型有：`library`（为其他插件编写提供功能），`application`（向机器人用户提供功能）。
-<<<<<<< HEAD
-
-    homepage="https://github.com/luosheng520qaq/nonebot_plugin_web_bottle",
-    # 发布必填。
-
-
-=======
     homepage="https://github.com/luosheng520qaq/nonebot-plugin-web-bottle",
     # 发布必填。
     config=Config,
->>>>>>> a52cb1d4c4ab31cd8722d2509fd4543ac5942b68
     supported_adapters={"~onebot.v11"},
     # 支持的适配器集合，其中 `~` 在此处代表前缀 `nonebot.adapters.`，其余适配器亦按此格式填写。
     # 若插件可以保证兼容所有适配器（即仅使用基本适配器功能）可不填写，否则应该列出插件支持的适配器。
@@ -62,11 +40,12 @@ __plugin_meta__ = PluginMetadata(
 bottle_help_text = __plugin_meta__.usage
 
 throw = on_command("丢瓶子", aliases={"扔瓶子"}, priority=1, block=True)
-get_bottle = on_fullmatch("捡瓶子", priority=1, block=True)
+get_bottle = on_command("捡瓶子", aliases={"漂流瓶"}, priority=1, block=True)
 up_bottle = on_command("点赞漂流瓶", priority=1, block=True)
 comment = on_command("评论漂流瓶", priority=1, block=True)
 read_bottle = on_command("查看漂流瓶", priority=1, block=True)
-bottle_help = on_command("漂流瓶", aliases={"漂流瓶帮助", "丢瓶子帮助"}, priority=1, block=True)
+bottle_help = on_command("漂流瓶帮助", aliases={"漂流瓶菜单"}, priority=1, block=True)
+
 
 
 
@@ -75,6 +54,7 @@ async def _():
     await bottle_help.finish(
         "\n漂流瓶使用帮助" + bottle_help_text
     )
+
 
 
 @read_bottle.handle()
@@ -107,34 +87,33 @@ async def _(bot: Bot, foo: Message = CommandArg()):
         else:
             await read_bottle.finish("发生未知错误！")
 
-    message = Message(await get_bottle_info(bot, bottle_data))
-    message = await get_bottle_img(message, await bottle.get_bottle_images(bottle_data["id"]))
-    comment = await get_bottle_comment(bot, await bottle.get_comments(int(bottle_data["id"])), bottle_data["id"])
+    # 处理消息
+    messages = await botte_routing(bot, bottle_data, bottle)
     
     # 发送消息
-    if comment:
-        if bottle_msg_split:
-            await get_bottle.send(message)
-            message = Message(comment)
-        else:
-            message += Message(comment)
-    await get_bottle.finish(message)
+    for message in messages:
+        await read_bottle.send(message)
+    await read_bottle.finish()
+
 
 
 @comment.handle()
 async def _(event: GroupMessageEvent, foo: Message = CommandArg()):
     try:
-        a = str(foo).split()
+        a = str(foo).split(maxsplit=1)
         bottle_id = int(a[0])
-        text = str(a[1])
+        text = str(foo)[len(a[0]):].strip()
     except ValueError:
         await comment.finish("请输入正确的漂流瓶id和评论内容")
+    except IndexError:
+        await comment.finish("请输入评论内容")
     bottle = Bottle(data_deal.conn_bottle)
     a = await bottle.add_comment_if_approved(bottle_id, text, str(event.user_id))
     if not a:
         await comment.finish("评论失败，漂流瓶不存在")
     else:
         await comment.finish("评论成功！")
+
 
 
 @up_bottle.handle()
@@ -151,6 +130,7 @@ async def _(event: GroupMessageEvent, args: Message = CommandArg()):
         await up_bottle.finish(f"点赞成功,现在有{num}个赞！")
 
 
+
 @get_bottle.handle()
 async def _(bot: Bot):
     await get_bottle.send("捡瓶子中...")
@@ -159,18 +139,14 @@ async def _(bot: Bot):
     if not bottle_data:
         await get_bottle.finish("捞瓶子失败，没有漂流瓶~")
 
-    message = Message(await get_bottle_info(bot, bottle_data))
-    message = await get_bottle_img(message, await bottle.get_bottle_images(bottle_data["id"]))
-    comment = await get_bottle_comment(bot, await bottle.get_comments(int(bottle_data["id"])), bottle_data["id"])
+    # 处理消息
+    messages = await botte_routing(bot, bottle_data, bottle)
     
     # 发送消息
-    if comment:
-        if bottle_msg_split:
-            await get_bottle.send(message)
-            message = Message(comment)
-        else:
-            message += Message(comment)
-    await get_bottle.finish(message)
+    for message in messages:
+        await get_bottle.send(message)
+    await get_bottle.finish()
+
 
 
 @throw.handle()

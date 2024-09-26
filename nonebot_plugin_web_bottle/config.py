@@ -40,7 +40,7 @@ bottle_msg_uname = config.bottle_msg_uname
 bottle_msg_gname = config.bottle_msg_gname
 '''启用漂流瓶群昵称获取展示（同上）'''
 default_nickname = config.default_nickname
-'''定义的默认昵称'''
+'''定义的玩家默认昵称'''
 
 
 bottle_msg_split = config.bottle_msg_split
