@@ -54,7 +54,7 @@ localstore_data_dir=
 ```
 在这个插件里，你通常只需要配置修改 localstore_data_dir=  即可
 
-##建议nonebot配置
+## 建议nonebot配置
 如果想要在其他机器上访问到审核web，请修改nonebot运行的IP，在配置文件中修改如下：
 
 ```
