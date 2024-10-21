@@ -52,12 +52,20 @@ localstore_cache_dir=
 localstore_config_dir=
 localstore_data_dir=
 ```
-在这个插件里，你通常只需要配置修改 localstore_data_dir=即可
+在这个插件里，你通常只需要配置修改 localstore_data_dir=  即可
+##联系nonebot配置
+如果想要在其他机器上访问到审核web，请修改nonebot运行的IP，在配置文件中修改如下：
+
+```
+HOST=0.0.0.0
+```
+
 ## web页面地址：
 ```
 http://location:nonebot端口/check 漂流瓶审核
-
 http://location:nonebot端口/comments 评论审核
+
+或者将location替换为nonebot所在机器的IPv4地址
 ```
 ## 背景图片
 位于：
