@@ -57,7 +57,10 @@ class BottleInfo(BaseModel):
 
 @app.get("/check", response_class=HTMLResponse)
 async def read_item(request: Request) -> _TemplateResponse:
-    return templates.TemplateResponse("index.html", {"request": request})
+    bottle = Bottle(conn=data_deal.conn_bottle)
+    pending_count = await bottle.get_pending_count()
+    return templates.TemplateResponse("index.html", {"request": request, "pending_count": pending_count})
+
 
 
 @app.get("/bottles/random", response_model=BottleInfo)
@@ -662,6 +665,19 @@ class Bottle:
                 "state": state,
             }
         return None
+
+    async def get_pending_count(self) -> int:
+        """
+        获取剩余待审核的瓶子数量
+        """
+
+        # 获取表中 state 等于 0 的行数
+        count_sql = "SELECT COUNT(*) FROM pending WHERE state = 0"
+        count_result = self.conn.execute(count_sql)
+        count = (count_result.fetchone())[0]
+        logger.debug(f"Total pending bottles with state 0: {count}")  # 调试信息
+
+        return count
 
     async def get_bottle_images(self, id: int) -> list[bytes]:
         """

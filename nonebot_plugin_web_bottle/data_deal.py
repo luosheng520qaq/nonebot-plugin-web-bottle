@@ -54,7 +54,7 @@ def _():
 
         cursor.execute("""
             CREATE TABLE images (
-                id INTEGER PRIMARY KEY,
+                id INTEGER,  -- 保留 id 列但不是主键
                 data BLOB
             )
         """)
@@ -83,6 +83,39 @@ def _():
         logger.success("数据库和表成功创建！")
     else:
         logger.info("数据库已存在，跳过创建步骤！")
+
+        # 连接到数据库检查 images 表结构
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        # 检查 images 表是否存在，并获取其结构
+        cursor.execute("PRAGMA table_info(images)")
+        columns = cursor.fetchall()
+
+        # 检查 id 是否为主键
+        is_id_primary_key = any(col[1] == 'id' and col[5] == 1 for col in columns)
+
+        if is_id_primary_key:
+            logger.info("images 表的 id 列为主键，正在去除主键约束！")
+            # 创建一个新的表，复制原数据
+            cursor.execute("""
+                CREATE TABLE images_new (
+                    id INTEGER,  -- 保留 id 列但不是主键
+                    data BLOB
+                )
+            """)
+
+            cursor.execute("INSERT INTO images_new (id, data) SELECT id, data FROM images")
+
+            # 删除旧表
+            cursor.execute("DROP TABLE images")
+            # 重命名新表为原表名
+            cursor.execute("ALTER TABLE images_new RENAME TO images")
+            conn.commit()
+            logger.success("images 表的主键约束已去除！")
+
+        conn.close()
+
     logger.success("加载成功！")
     # 创建全局数据库连接
     db_path = store.get_data_dir("nonebot_plugin_web_bottle") / "bottle.db"
