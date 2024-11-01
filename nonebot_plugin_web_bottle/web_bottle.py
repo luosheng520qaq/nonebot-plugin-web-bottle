@@ -6,6 +6,10 @@ from pathlib import Path
 from sqlite3 import Connection
 from typing import Any, Literal
 
+from io import BytesIO
+from PIL import Image
+
+
 import aiofiles
 import httpx
 from fastapi import FastAPI, HTTPException, Request
@@ -152,15 +156,38 @@ class NotSupportMessageError(Exception):
 
 async def store_image_data(image_id: int, image_data: bytes, conn: Connection) -> None:
     """
-    存储图像数据到数据库。
+    存储图像数据到数据库，使用有损压缩减小文件大小。
     :param image_id: 图像对应的 ID
     :param image_data: 图像的二进制数据
     :param conn: 数据库连接
     """
+    # 将二进制数据转换为Image对象
+    image = Image.open(BytesIO(image_data))
+
+    # 创建一个BytesIO对象用于保存压缩后的图像数据
+    output = BytesIO()
+
+    # 保存图像时应用有损压缩
+    # 对于JPEG图像，可以调整quality参数来控制压缩级别
+    # quality参数范围为1（最差）到95（最好），通常推荐值为75-85
+    format = image.format
+    if format in ['JPEG', 'JPG']:
+        image.save(output, format='JPEG', quality=75)  # 调整quality值以平衡质量和大小
+    else:
+        # 对于其他格式，如果支持，也尝试进行有损压缩
+        # 这里假设所有支持的格式都支持有损压缩
+        image.save(output, format=format, quality=75)
+
+    # 获取压缩后的二进制数据
+    compressed_image_data = output.getvalue()
+
+    # 清理资源
+    output.close()
+
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO images (id, data) VALUES (?, ?)",
-        (image_id, image_data),  # 直接存储传入的 image_id
+        (image_id, compressed_image_data),  # 存储压缩后的图像数据
     )
     conn.commit()
 
