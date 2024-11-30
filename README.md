@@ -6,7 +6,7 @@
 
 
 # nonebot_plugin_web_bottle
-![Python]([[https://img.shields.io/badge/Python-3.9+-blue.svg](https://github.com/luosheng520qaq/nonebot-plugin-web-bottle/blob/master/B66FEE6EE4B550CF930CF48FFB9EDC0D.png)](https://github.com/luosheng520qaq/nonebot-plugin-web-bottle/blob/master/B66FEE6EE4B550CF930CF48FFB9EDC0D.png?raw=true))
+![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)
 ![PyPI - Version](https://img.shields.io/pypi/v/nonebot-plugin-web-bottle)
 [![pdm-managed](https://img.shields.io/endpoint?url=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2Fpdm-project%2F.github%2Fbadge.json)](https://pdm-project.org)
 
@@ -40,7 +40,7 @@ nb plugin install nonebot-plugin-web-bottle
 - [x] 登录验证
 
 # 效果图：
-![Image of Yaktocat](https://i.111666.best/image/WGdLfSoztpNEFYjYZv8AlQ.png)
+![Image of Yaktocat]([https://i.111666.best/image/WGdLfSoztpNEFYjYZv8AlQ.png](https://raw.githubusercontent.com/luosheng520qaq/nonebot-plugin-web-bottle/refs/heads/master/B66FEE6EE4B550CF930CF48FFB9EDC0D.png))
 ![Image of Yaktocat](https://github.com/luosheng520qaq/nonebot_plugin_web_bottle/blob/master/example/bottles.png)
 ![Image of Yaktocat](https://github.com/luosheng520qaq/nonebot_plugin_web_bottle/blob/master/example/comments.png)
 # 关于插件的其他注意事项
