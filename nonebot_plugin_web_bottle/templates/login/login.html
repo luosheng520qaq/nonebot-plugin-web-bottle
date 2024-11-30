@@ -12,12 +12,6 @@
             font-family: 'qiantu';
             src: url('/login/static/font/qiantu.ttf');
         }
-
-        /* 全局字体设置 */
-        body {
-            font-family: 'qiantu', sans-serif;  /* 使用qiantu字体作为默认字体 */
-        }
-
         .marlene-btn-login {
             font-family: 'qiantu';
         }
@@ -29,9 +23,10 @@
             margin-top: 3rem;  /* 上边距 */
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
 </head>
 
-<body>
+<body class=" ">
     <div class="wrapper"
         style="background: url(/login/static/image/background.png); background-attachment: fixed; background-size: cover;">
         <section class="login-content">
@@ -40,31 +35,29 @@
                     <div class="col-lg-8">
                         <div class="card auth-card" style="overflow: inherit;border: 0px;">
                             <div class="card-body p-0">
-                                <div class="d-flex auth-content">
-                                    <div class="col-lg-6 content-left"
+                                <div class="d-flex  auth-content">
+                                    <div class="col-lg-6  content-left"
                                         style="background-color: white;border-radius: 8px 0px 0px 8px;">
-                                        <div class="p-3">
+                                        <div class="p-3 ">
                                             <div>
                                                 <h2 class="mb-2 text-primary">登录</h2>
                                                 <p>欢迎回来！</p>
                                             </div>
-                                            <form method="POST" action="/login">
                                                 <div class="row">
                                                     <div class="col-lg-12">
                                                         <div class="floating-label form-group">
-                                                            <input class="floating-input form-control" name="username" placeholder=" " style="border-color:#f3f3f3">
+                                                            <input class="floating-input form-control" name="username" id="username" placeholder=" " style="border-color:#f3f3f3">
                                                             <label>账号</label>
                                                         </div>
                                                     </div>
                                                     <div class="col-lg-12">
                                                         <div class="floating-label form-group">
-                                                            <input class="floating-input form-control" type="password" name="password" placeholder=" " style="border-color:#f3f3f3">
+                                                            <input class="floating-input form-control" type="password" name="password" id="password" placeholder=" " style="border-color:#f3f3f3">
                                                             <label>密码</label>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <button type="submit" class="btn btn-primary marlene-btn-login btn-block" style="border: 0px;font-size: 1.4rem;border-radius: 1.25rem;">登录</button>
-                                            </form>
+                                            <button type="button" class="btn btn-primary marlene-btn-login btn-block" onclick="submitLoginForm()" style="border: 0px;font-size: 1.4rem;border-radius: 1.25rem;">登录</button>
                                         </div>
                                     </div>
                                     <div class="col-lg-6 content-right">
@@ -78,6 +71,42 @@
             </div>
         </section>
     </div>
+
+    <script>
+        function submitLoginForm() {
+            var username = document.getElementById('username').value;
+            var password = document.getElementById('password').value;
+            crypto.subtle.digest('SHA-256', new TextEncoder().encode(password))
+                .then(hash => {
+                    var hashArray = Array.from(new Uint8Array(hash));
+                    var hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                    var formData = new FormData();
+                    formData.append('username', username);
+                    formData.append('password', hashHex);
+                    fetch('/login', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        console.log(response.json())
+                        if (response.status == 200) {
+                            window.location.replace(`${window.location.origin}/check`);
+                        } else {
+                            return response.json();
+                        }
+                    })
+                    .then(data => {
+                        console.log(data);
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+                })
+                .catch(error => {
+                });
+        }
+    </script>
+    
 </body>
 
 </html>
