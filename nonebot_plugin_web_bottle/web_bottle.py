@@ -1,6 +1,6 @@
 import asyncio
 import base64
-import hashlib
+from argon2 import PasswordHasher
 import random
 from http import HTTPStatus
 from pathlib import Path
@@ -54,7 +54,8 @@ app.add_middleware(SessionMiddleware, secret_key="your_secret_key")
 # 定义账号和密码
 account = bottle_account
 password = bottle_password
-password_sha256 = hashlib.sha256(password.encode("utf-8")).hexdigest()
+ph = PasswordHasher()
+password_hash = ph.hash(password)
 
 security = HTTPBasic()
 
