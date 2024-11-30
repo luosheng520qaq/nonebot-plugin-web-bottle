@@ -5,6 +5,7 @@ from nonebot import on_command, on_fullmatch
 from nonebot.params import CommandArg
 from nonebot.plugin import PluginMetadata
 from nonebot.adapters.onebot.v11 import Message, GroupMessageEvent, Bot
+from nonebot.adapters.onebot.v11.helpers import Cooldown
 
 from . import data_deal
 from .web_bottle import Bottle, id_add, serialize_message
@@ -40,11 +41,11 @@ __plugin_meta__ = PluginMetadata(
 bottle_help_text = __plugin_meta__.usage
 
 throw = on_command("丢瓶子", aliases={"扔瓶子"}, priority=1, block=True)
-get_bottle = on_command("捡瓶子", aliases={"漂流瓶"}, priority=1, block=True)
+get_bottle = on_command("捡瓶子", aliases={"捡漂流瓶"}, priority=1, block=True)
 up_bottle = on_command("点赞漂流瓶", priority=1, block=True)
 comment = on_command("评论漂流瓶", priority=1, block=True)
 read_bottle = on_command("查看漂流瓶", priority=1, block=True)
-bottle_help = on_command("漂流瓶帮助", aliases={"漂流瓶菜单"}, priority=1, block=True)
+bottle_help = on_command("漂流瓶", aliases={"漂流瓶菜单"}, priority=1, block=True)
 
 
 
@@ -131,9 +132,8 @@ async def _(event: GroupMessageEvent, args: Message = CommandArg()):
 
 
 
-@get_bottle.handle()
+@get_bottle.handle(parameterless=[Cooldown(cooldown=6)])
 async def _(bot: Bot):
-    await get_bottle.send("捡瓶子中...")
     bottle = Bottle(data_deal.conn_bottle)
     bottle_data = await bottle.random_get_approves_bottle()
     if not bottle_data:
@@ -149,7 +149,7 @@ async def _(bot: Bot):
 
 
 
-@throw.handle()
+@throw.handle(parameterless=[Cooldown(cooldown=6)])
 async def _(event: GroupMessageEvent, args: Message = CommandArg()):
     if not args:
         if embedded_help:

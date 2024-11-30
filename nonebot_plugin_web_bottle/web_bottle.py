@@ -23,7 +23,7 @@ from pydantic import BaseModel
 from starlette.templating import _TemplateResponse
 
 from . import data_deal
-from .config import max_bottle_pic,Password,Account
+from .config import max_bottle_pic,bottle_password,bottle_account
 from fastapi import Depends, FastAPI, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -35,7 +35,7 @@ from pydantic import BaseModel
 from pathlib import Path
 import secrets
 import base64
-
+logger.success(f"读取到的用户名：{bottle_account}\n 密码：{bottle_password}")
 require("nonebot_plugin_localstore")
 
 import nonebot_plugin_localstore as store  # noqa: E402
@@ -51,9 +51,7 @@ driver = get_driver()
 # 添加会话中间件
 app.add_middleware(SessionMiddleware, secret_key="your_secret_key")
 
-# 定义账号和密码
-account = Account
-password = Password
+
 
 security = HTTPBasic()
 
@@ -92,7 +90,7 @@ async def login_page(request: Request):
 
 @app.post("/login")
 async def login(username: str = Form(...), password: str = Form(...), request: Request = None):
-    if username == account and password == password:
+    if username == bottle_account and password == bottle_password:
         request.session['user'] = username
         return RedirectResponse(url="/check", status_code=HTTP_302_FOUND)
     raise HTTPException(status_code=401, detail="登录失败")

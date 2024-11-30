@@ -83,8 +83,8 @@ http://location:nonebot端口/comments 评论审核
 ```
 # 登录密钥
 默认
-Account = 'admin'
-Password = 'password'
+bottle_account = 'admin'
+bottle_password = 'password'
 请务必修改
 
 # 丢瓶子规则配置
