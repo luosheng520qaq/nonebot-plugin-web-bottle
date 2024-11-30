@@ -40,6 +40,7 @@ nb plugin install nonebot-plugin-web-bottle
 - [x] 登录验证
 
 # 效果图：
+![Image of Yaktocat](https://i.111666.best/image/WGdLfSoztpNEFYjYZv8AlQ.png)
 ![Image of Yaktocat](https://github.com/luosheng520qaq/nonebot_plugin_web_bottle/blob/master/example/bottles.png)
 ![Image of Yaktocat](https://github.com/luosheng520qaq/nonebot_plugin_web_bottle/blob/master/example/comments.png)
 # 关于插件的其他注意事项
