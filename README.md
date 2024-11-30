@@ -63,6 +63,7 @@ HOST=0.0.0.0
 
 ## web页面地址：
 ```
+http://location:nonebot端口/login 登录页面
 http://location:nonebot端口/check 漂流瓶审核
 http://location:nonebot端口/comments 评论审核
 
