@@ -1,0 +1,108 @@
+body {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: url('/login/static/images/background.jpg') no-repeat center center fixed; /* 背景图片 */
+    background-size: cover; /* 使背景图片覆盖整个屏幕 */
+}
+
+.login-container {
+    background: rgba(255, 255, 255, 0.9); /* 半透明白色背景 */
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 6px 20px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    width: 400px; /* 增加宽度 */
+    text-align: center;
+    position: relative;
+    z-index: 1; /* 确保登录框在模糊背景之上 */
+    backdrop-filter: blur(3px); /* 毛玻璃效果 */
+    -webkit-backdrop-filter: blur(10px); /* Safari 和 Chrome 的兼容性 */
+}
+
+.login-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #ff69b4, #ffe6f7, #ff69b4);
+    opacity: 0.2;
+    border-radius: 15px;
+    z-index: -1;
+}
+
+.login-container h2 {
+    color: #ff69b4; /* 粉色标题 */
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.login-container input[type="text"],
+.login-container input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    transition: border-color 0.3s ease;
+}
+
+.login-container input[type="text"]:focus,
+.login-container input[type="password"]:focus {
+    border-color: #ff69b4;
+    outline: none;
+}
+
+.login-container button {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #ff69b4, #ff1493);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.login-container button:hover {
+    background: linear-gradient(135deg, #ff1493, #ff69b4);
+}
+
+/* 其他装饰性元素 */
+.login-container .decorative-circle {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background: rgba(255, 105, 180, 0.5);
+    border-radius: 50%;
+    filter: blur(20px);
+    z-index: -1;
+}
+
+.login-container .decorative-circle.top-left {
+    top: -50px;
+    left: -50px;
+}
+
+.login-container .decorative-circle.bottom-right {
+    bottom: -50px;
+    right: -50px;
+}
+
+.login-container .decorative-circle.top-right {
+    top: -50px;
+    right: -50px;
+}
+
+.login-container .decorative-circle.bottom-left {
+    bottom: -50px;
+    left: -50px;
+}

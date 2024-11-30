@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>漂流瓶审核登录 | 每次登录都是与你の邂逅。</title>
+    <!-- Favicon -->
+    <link rel="stylesheet" href="/login/static/css/backend.css">
+    <style type="text/css">
+        @font-face {
+            font-family: 'qiantu';
+            src: url('/login/static/font/qiantu.ttf');
+        }
+        .marlene-btn-login {
+            font-family: 'qiantu';
+        }
+
+        /* 图片样式 */
+        .image-right {
+            width: 500px;  /* 固定宽度 */
+            height: auto;  /* 高度自动保持比例 */
+            margin-top: 3rem;  /* 上边距 */
+        }
+    </style>
+</head>
+
+<body class=" ">
+    <div class="wrapper"
+        style="background: url(/login/static/image/background.png); background-attachment: fixed; background-size: cover;">
+        <section class="login-content">
+            <div class="container">
+                <div class="row align-items-center justify-content-center height-self-center">
+                    <div class="col-lg-8">
+                        <div class="card auth-card" style="overflow: inherit;border: 0px;">
+                            <div class="card-body p-0">
+                                <div class="d-flex  auth-content">
+                                    <div class="col-lg-6  content-left"
+                                        style="background-color: white;border-radius: 8px 0px 0px 8px;">
+                                        <div class="p-3 ">
+                                            <div>
+                                                <h2 class="mb-2 text-primary">登录</h2>
+                                                <p>欢迎回来！</p>
+                                            </div>
+                                            <form method="POST" action="/login">
+                                                <div class="row">
+                                                    <div class="col-lg-12">
+                                                        <div class="floating-label form-group">
+                                                            <input class="floating-input form-control" name="username" placeholder=" " style="border-color:#f3f3f3">
+                                                            <label>账号</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-lg-12">
+                                                        <div class="floating-label form-group">
+                                                            <input class="floating-input form-control" type="password" name="password" placeholder=" " style="border-color:#f3f3f3">
+                                                            <label>密码</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary marlene-btn-login btn-block" style="border: 0px;font-size: 1.4rem;border-radius: 1.25rem;">登录</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 content-right">
+                                        <img src="/login/static/picture/linglan.png" class="img-fluid image-right" alt="">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录</title>
+    <link rel="stylesheet" href="/login/static/styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="decorative-circle top-left"></div>
+        <div class="decorative-circle bottom-right"></div>
+        <div class="decorative-circle top-right"></div>
+        <div class="decorative-circle bottom-left"></div>
+        
+        <form action="/login" method="post">
+            <h2>欢迎回来！</h2>
+            <input type="text" name="username" placeholder="用户名" required>
+            <input type="password" name="password" placeholder="密码" required>
+            <button type="submit">登录</button>
+        </form>
+    </div>
+</body>
+</html>

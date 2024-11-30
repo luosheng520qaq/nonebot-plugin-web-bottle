@@ -23,7 +23,18 @@ from pydantic import BaseModel
 from starlette.templating import _TemplateResponse
 
 from . import data_deal
-from .config import max_bottle_pic
+from .config import max_bottle_pic,Password,Account
+from fastapi import Depends, FastAPI, HTTPException, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.status import HTTP_302_FOUND
+from pydantic import BaseModel
+from pathlib import Path
+import secrets
+import base64
 
 require("nonebot_plugin_localstore")
 
@@ -37,6 +48,15 @@ if not isinstance(app, FastAPI):
 
 driver = get_driver()
 
+# 添加会话中间件
+app.add_middleware(SessionMiddleware, secret_key="your_secret_key")
+
+# 定义账号和密码
+account = Account
+password = Password
+
+security = HTTPBasic()
+
 # 获取当前文件所在目录
 plugin_dir = Path(__file__).parent
 
@@ -48,7 +68,6 @@ app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 templates_dir = plugin_dir / "templates"
 templates = Jinja2Templates(directory=str(templates_dir))
 
-
 class BottleInfo(BaseModel):
     ID: int
     Content: str
@@ -58,17 +77,34 @@ class BottleInfo(BaseModel):
     State: int
     Images: list[str]
 
+# 登录依赖项
+def login_required(request: Request):
+    if 'user' not in request.session:
+        raise HTTPException(status_code=401, detail="请访问/login页面登陆后操作")
+
+
+login_static_dir = plugin_dir / "templates" / "login" / "static"
+app.mount("/login/static", StaticFiles(directory=str(login_static_dir)), name="login-static")
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse("login/login.html", {"request": request})
+
+@app.post("/login")
+async def login(username: str = Form(...), password: str = Form(...), request: Request = None):
+    if username == account and password == password:
+        request.session['user'] = username
+        return RedirectResponse(url="/check", status_code=HTTP_302_FOUND)
+    raise HTTPException(status_code=401, detail="登录失败")
 
 @app.get("/check", response_class=HTMLResponse)
-async def read_item(request: Request) -> _TemplateResponse:
+async def read_item(request: Request, user: str = Depends(login_required)) -> _TemplateResponse:
     bottle = Bottle(conn=data_deal.conn_bottle)
     pending_count = await bottle.get_pending_count()
     return templates.TemplateResponse("index.html", {"request": request, "pending_count": pending_count})
 
-
-
 @app.get("/bottles/random", response_model=BottleInfo)
-async def get_random_bottle() -> BottleInfo:
+async def get_random_bottle(user: str = Depends(login_required)) -> BottleInfo:
     bottle = Bottle(conn=data_deal.conn_bottle)
     b = await bottle.random_get_bottle()
     if not b:
@@ -87,23 +123,20 @@ async def get_random_bottle() -> BottleInfo:
         Images=images_base64,
     )
 
-
 @app.post("/bottles/approve/{id}")
-async def approve_bottle(id: int) -> dict[str, str]:
+async def approve_bottle(id: int, user: str = Depends(login_required)) -> dict[str, str]:
     b = Bottle(conn=data_deal.conn_bottle)
     await b.add_approved_bottle(id)
     return {"status": "approved"}
 
-
 @app.post("/bottles/refuse/{id}")
-async def refuse_bottle(id: int) -> dict[str, str]:
+async def refuse_bottle(id: int, user: str = Depends(login_required)) -> dict[str, str]:
     b = Bottle(conn=data_deal.conn_bottle)
     await b.refuse_bottle(id)
     return {"status": "refused"}
 
-
 @app.get("/comments", response_class=HTMLResponse)
-async def review_comments(request: Request) -> _TemplateResponse:
+async def review_comments(request: Request, user: str = Depends(login_required)) -> _TemplateResponse:
     conn = data_deal.conn_bottle
     bottle = Bottle(conn)
     comment = await bottle.get_random_comment_with_state_zero()
@@ -111,9 +144,8 @@ async def review_comments(request: Request) -> _TemplateResponse:
         return templates.TemplateResponse("comments.html", {"request": request, "comment": None})
     return templates.TemplateResponse("comments.html", {"request": request, "comment": comment})
 
-
 @app.get("/comments/random")
-async def get_random_comment() -> dict[str, Any]:
+async def get_random_comment(user: str = Depends(login_required)) -> dict[str, Any]:
     conn = data_deal.conn_bottle
     bottle = Bottle(conn)
     comment = await bottle.get_random_comment_with_state_zero()
@@ -121,9 +153,8 @@ async def get_random_comment() -> dict[str, Any]:
         raise HTTPException(status_code=404, detail="No comments found")
     return comment
 
-
 @app.post("/comments/approve/{comment_id}")
-async def approve_comment(comment_id: int) -> dict[str, str]:
+async def approve_comment(comment_id: int, user: str = Depends(login_required)) -> dict[str, str]:
     conn = data_deal.conn_bottle
     bottle = Bottle(conn)
     success = await bottle.pass_comment_state(comment_id)
@@ -131,15 +162,13 @@ async def approve_comment(comment_id: int) -> dict[str, str]:
         raise HTTPException(status_code=404, detail="Comment not found")
     return {"status": "approved"}
 
-
 @app.post("/comments/refuse/{comment_id}")
-async def refuse_comment(comment_id: int) -> dict[str, str]:
+async def refuse_comment(comment_id: int, user: str = Depends(login_required)) -> dict[str, str]:
     bottle = Bottle(data_deal.conn_bottle)
     success = await bottle.refuse_comment_state(comment_id)
     if not success:
         raise HTTPException(status_code=404, detail="Comment not found")
     return {"status": "refused"}
-
 
 @driver.on_startup
 def _():

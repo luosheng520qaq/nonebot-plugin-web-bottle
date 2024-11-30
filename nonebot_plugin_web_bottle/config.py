@@ -19,6 +19,8 @@ class Config(BaseModel):
     bottle_msg_uname: bool = True   # 为False时关闭发送者昵称获取展示 适用于官方Bot或想要提高响应速度时
     bottle_msg_gname: bool = True   # 为False时关闭群聊昵称获取展示 同上
     qq_markdown: bool = False   # QQMD适配，请自行申请并修改to_msg.py中的模板
+    Account: str = 'admin'
+    Password: str = 'password'
 
 
 
@@ -49,3 +51,6 @@ embedded_help = config.embedded_help
 '''在丢瓶子未填写内容时回复帮助文本'''
 qq_markdown = config.qq_markdown
 '''官方MD适配'''
+
+Account = config.Account
+Password = config.Password

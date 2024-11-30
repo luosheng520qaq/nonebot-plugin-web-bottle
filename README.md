@@ -37,7 +37,7 @@ nb plugin install nonebot-plugin-web-bottle
 - [x] 在网页端
 - [x] 审核漂流瓶
 - [x] 审核评论
-
+- [x] 登录验证
 
 # 效果图：
 ![Image of Yaktocat](https://github.com/luosheng520qaq/nonebot_plugin_web_bottle/blob/master/example/bottles.png)
@@ -79,6 +79,12 @@ http://location:nonebot端口/comments 评论审核
 
 以下配置为插件默认值，如果您认为不需要修改，可以不添加
 ```
+# 登录密钥
+默认
+Account = 'admin'
+Password = 'password'
+请务必修改
+
 # 丢瓶子规则配置
 max_bottle_pic=2    # 丢瓶子允许最多图片数量
 max_bottle_liens=9  # 丢瓶子允许最多文字行数
