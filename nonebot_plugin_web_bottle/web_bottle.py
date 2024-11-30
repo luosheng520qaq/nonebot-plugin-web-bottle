@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import hashlib
 import random
 from http import HTTPStatus
 from pathlib import Path
@@ -8,7 +9,6 @@ from typing import Any, Literal
 
 from io import BytesIO
 from PIL import Image
-
 
 import aiofiles
 import httpx
@@ -23,7 +23,7 @@ from pydantic import BaseModel
 from starlette.templating import _TemplateResponse
 
 from . import data_deal
-from .config import max_bottle_pic,bottle_password,bottle_account
+from .config import max_bottle_pic, Password, Account
 from fastapi import Depends, FastAPI, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -35,7 +35,7 @@ from pydantic import BaseModel
 from pathlib import Path
 import secrets
 import base64
-logger.success(f"读取到的用户名：{bottle_account}\n 密码：{bottle_password}")
+
 require("nonebot_plugin_localstore")
 
 import nonebot_plugin_localstore as store  # noqa: E402
@@ -51,7 +51,10 @@ driver = get_driver()
 # 添加会话中间件
 app.add_middleware(SessionMiddleware, secret_key="your_secret_key")
 
-
+# 定义账号和密码
+account = Account
+password = Password
+password_sha256 = hashlib.sha256(password.encode("utf-8")).hexdigest()
 
 security = HTTPBasic()
 
@@ -66,6 +69,7 @@ app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 templates_dir = plugin_dir / "templates"
 templates = Jinja2Templates(directory=str(templates_dir))
 
+
 class BottleInfo(BaseModel):
     ID: int
     Content: str
@@ -74,6 +78,7 @@ class BottleInfo(BaseModel):
     TimeInfo: str
     State: int
     Images: list[str]
+
 
 # 登录依赖项
 def login_required(request: Request):
@@ -84,22 +89,27 @@ def login_required(request: Request):
 login_static_dir = plugin_dir / "templates" / "login" / "static"
 app.mount("/login/static", StaticFiles(directory=str(login_static_dir)), name="login-static")
 
+
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     return templates.TemplateResponse("login/login.html", {"request": request})
 
+
 @app.post("/login")
 async def login(username: str = Form(...), password: str = Form(...), request: Request = None):
-    if username == bottle_account and password == bottle_password:
+    print(password == password_sha256)
+    if username == account and password == password_sha256:
         request.session['user'] = username
         return RedirectResponse(url="/check", status_code=HTTP_302_FOUND)
     raise HTTPException(status_code=401, detail="登录失败")
+
 
 @app.get("/check", response_class=HTMLResponse)
 async def read_item(request: Request, user: str = Depends(login_required)) -> _TemplateResponse:
     bottle = Bottle(conn=data_deal.conn_bottle)
     pending_count = await bottle.get_pending_count()
     return templates.TemplateResponse("index.html", {"request": request, "pending_count": pending_count})
+
 
 @app.get("/bottles/random", response_model=BottleInfo)
 async def get_random_bottle(user: str = Depends(login_required)) -> BottleInfo:
@@ -121,17 +131,20 @@ async def get_random_bottle(user: str = Depends(login_required)) -> BottleInfo:
         Images=images_base64,
     )
 
+
 @app.post("/bottles/approve/{id}")
 async def approve_bottle(id: int, user: str = Depends(login_required)) -> dict[str, str]:
     b = Bottle(conn=data_deal.conn_bottle)
     await b.add_approved_bottle(id)
     return {"status": "approved"}
 
+
 @app.post("/bottles/refuse/{id}")
 async def refuse_bottle(id: int, user: str = Depends(login_required)) -> dict[str, str]:
     b = Bottle(conn=data_deal.conn_bottle)
     await b.refuse_bottle(id)
     return {"status": "refused"}
+
 
 @app.get("/comments", response_class=HTMLResponse)
 async def review_comments(request: Request, user: str = Depends(login_required)) -> _TemplateResponse:
@@ -142,6 +155,7 @@ async def review_comments(request: Request, user: str = Depends(login_required))
         return templates.TemplateResponse("comments.html", {"request": request, "comment": None})
     return templates.TemplateResponse("comments.html", {"request": request, "comment": comment})
 
+
 @app.get("/comments/random")
 async def get_random_comment(user: str = Depends(login_required)) -> dict[str, Any]:
     conn = data_deal.conn_bottle
@@ -150,6 +164,7 @@ async def get_random_comment(user: str = Depends(login_required)) -> dict[str, A
     if not comment:
         raise HTTPException(status_code=404, detail="No comments found")
     return comment
+
 
 @app.post("/comments/approve/{comment_id}")
 async def approve_comment(comment_id: int, user: str = Depends(login_required)) -> dict[str, str]:
@@ -160,6 +175,7 @@ async def approve_comment(comment_id: int, user: str = Depends(login_required)) 
         raise HTTPException(status_code=404, detail="Comment not found")
     return {"status": "approved"}
 
+
 @app.post("/comments/refuse/{comment_id}")
 async def refuse_comment(comment_id: int, user: str = Depends(login_required)) -> dict[str, str]:
     bottle = Bottle(data_deal.conn_bottle)
@@ -167,6 +183,7 @@ async def refuse_comment(comment_id: int, user: str = Depends(login_required)) -
     if not success:
         raise HTTPException(status_code=404, detail="Comment not found")
     return {"status": "refused"}
+
 
 @driver.on_startup
 def _():
@@ -238,11 +255,11 @@ async def cache_file(msg: Message, image_id: int, conn: Connection) -> None:
 
 
 async def cache_image_url(
-    seg: MessageSegment,
-    client: httpx.AsyncClient,
-    image_id: int,
-    conn: Connection,
-    semaphore: asyncio.Semaphore,
+        seg: MessageSegment,
+        client: httpx.AsyncClient,
+        image_id: int,
+        conn: Connection,
+        semaphore: asyncio.Semaphore,
 ) -> None:
     """
     缓存单个图片 URL 到数据库。
@@ -503,7 +520,7 @@ class Bottle:
         return cursor.fetchone()
 
     async def add_pending_bottle(
-        self, id: int, message: str, userid: str, groupid: str, timeinfo: str
+            self, id: int, message: str, userid: str, groupid: str, timeinfo: str
     ) -> Literal[True]:
         """
         异步增加待审核的漂流瓶。
