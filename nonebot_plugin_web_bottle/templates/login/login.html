@@ -22,8 +22,20 @@
             height: auto;  /* 高度自动保持比例 */
             margin-top: 3rem;  /* 上边距 */
         }
+
+        /* 自定义弹窗样式 */
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
+        .modal {
+            z-index: 1050 !important;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap CSS & JS for Modal -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 
 <body class=" ">
@@ -37,26 +49,26 @@
                             <div class="card-body p-0">
                                 <div class="d-flex  auth-content">
                                     <div class="col-lg-6  content-left"
-                                        style="background-color: white;border-radius: 8px 0px 0px 8px;">
+                                        style="background-color: pinck;border-radius: 8px 0px 0px 8px;">
                                         <div class="p-3 ">
                                             <div>
-                                                <h2 class="mb-2 text-primary">登录</h2>
-                                                <p>欢迎回来！</p>
+                                                <h2 class="mb-2 text-primary">漂流瓶审核登录</h2>
+                                                <p>Ciallo～(∠・ω< )⌒★</p>
                                             </div>
-                                                <div class="row">
-                                                    <div class="col-lg-12">
-                                                        <div class="floating-label form-group">
-                                                            <input class="floating-input form-control" name="username" id="username" placeholder=" " style="border-color:#f3f3f3">
-                                                            <label>账号</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-lg-12">
-                                                        <div class="floating-label form-group">
-                                                            <input class="floating-input form-control" type="password" name="password" id="password" placeholder=" " style="border-color:#f3f3f3">
-                                                            <label>密码</label>
-                                                        </div>
+                                            <div class="row">
+                                                <div class="col-lg-12">
+                                                    <div class="floating-label form-group">
+                                                        <input class="floating-input form-control" name="username" id="username" placeholder=" " style="border-color:#f3f3f3">
+                                                        <label>账号</label>
                                                     </div>
                                                 </div>
+                                                <div class="col-lg-12">
+                                                    <div class="floating-label form-group">
+                                                        <input class="floating-input form-control" type="password" name="password" id="password" placeholder=" " style="border-color:#f3f3f3">
+                                                        <label>密码</label>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <button type="button" class="btn btn-primary marlene-btn-login btn-block" onclick="submitLoginForm()" style="border: 0px;font-size: 1.4rem;border-radius: 1.25rem;">登录</button>
                                         </div>
                                     </div>
@@ -72,10 +84,30 @@
         </section>
     </div>
 
+    <!-- 错误弹窗 -->
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="errorModalLabel">错误提示</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalMessage">
+                    <!-- 错误信息会在这里显示 -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         function submitLoginForm() {
             var username = document.getElementById('username').value;
             var password = document.getElementById('password').value;
+
+            // 调用加密算法
             crypto.subtle.digest('SHA-256', new TextEncoder().encode(password))
                 .then(hash => {
                     var hashArray = Array.from(new Uint8Array(hash));
@@ -83,30 +115,42 @@
                     var formData = new FormData();
                     formData.append('username', username);
                     formData.append('password', hashHex);
+
                     fetch('/login', {
                         method: 'POST',
                         body: formData
                     })
                     .then(response => {
-                        console.log(response.json())
-                        if (response.status == 200) {
+                        if (response.status === 200) {
                             window.location.replace(`${window.location.origin}/check`);
                         } else {
                             return response.json();
                         }
                     })
                     .then(data => {
-                        console.log(data);
+                        if (data && data.detail) {
+                            showErrorModal(data.detail);  // 显示弹窗并传递错误信息
+                        }
                     })
                     .catch(error => {
                         console.log(error);
+                        showErrorModal('网络错误，请稍后再试。');  // 显示网络错误
                     });
                 })
                 .catch(error => {
+                    console.log(error);
+                    showErrorModal('密码加密失败，请稍后再试。');  // 显示加密错误
                 });
         }
+
+        // 显示弹窗的函数
+        function showErrorModal(message) {
+            var modalMessage = document.getElementById('modalMessage');
+            modalMessage.textContent = message;  // 设置错误信息
+            var modal = new bootstrap.Modal(document.getElementById('errorModal'));  // 创建弹窗实例
+            modal.show();  // 显示弹窗
+        }
     </script>
-    
 </body>
 
 </html>

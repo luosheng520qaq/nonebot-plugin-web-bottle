@@ -25,7 +25,7 @@ from starlette.templating import _TemplateResponse
 from . import data_deal
 from .config import max_bottle_pic,bottle_account,bottle_password
 from fastapi import Depends, FastAPI, HTTPException, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse,JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -97,11 +97,15 @@ async def login_page(request: Request):
 
 @app.post("/login")
 async def login(username: str = Form(...), password: str = Form(...), request: Request = None):
-    print(password == password_sha256)
     if username == account and password == password_sha256:
         request.session['user'] = username
         return RedirectResponse(url="/check", status_code=HTTP_302_FOUND)
-    raise HTTPException(status_code=401, detail="登录失败")
+
+    # 登录失败时返回 JSON 响应，带有错误信息
+    return JSONResponse(
+        status_code=401,
+        content={"detail": "用户名或密码错误"}
+    )
 
 
 @app.get("/check", response_class=HTMLResponse)
