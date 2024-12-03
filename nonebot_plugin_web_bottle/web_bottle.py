@@ -35,6 +35,7 @@ from pydantic import BaseModel
 from pathlib import Path
 import secrets
 import base64
+from hmac import compare_digest
 
 require("nonebot_plugin_localstore")
 
@@ -97,7 +98,7 @@ async def login_page(request: Request):
 
 @app.post("/login")
 async def login(username: str = Form(...), password: str = Form(...), request: Request = None):
-    if username == account and password == password_sha256:
+    if compare_digest(username,account) and compare_digest(password,password_sha256):
         request.session['user'] = username
         return RedirectResponse(url="/check", status_code=HTTP_302_FOUND)
 
