@@ -1,6 +1,7 @@
 import re
 from datetime import datetime
 
+import nonebot
 from nonebot import on_command, on_fullmatch
 from nonebot.params import CommandArg
 from nonebot.plugin import PluginMetadata
@@ -10,14 +11,17 @@ from nonebot.adapters.onebot.v11.helpers import Cooldown
 from . import data_deal
 from .web_bottle import Bottle, id_add, serialize_message
 from .to_msg import botte_routing
-from .config import (
-    bottle_msg_split,
-    max_bottle_liens,
-    max_bottle_word,
-    max_bottle_pic,
-    embedded_help,
-    Config
-    )
+from .config import Config
+
+driver = nonebot.get_driver()
+global_config = driver.config
+config = Config.parse_obj(global_config)
+bottle_msg_split = config.bottle_msg_split
+max_bottle_liens = config.max_bottle_liens
+max_bottle_word = config.max_bottle_word
+max_bottle_pic = config.max_bottle_pic
+embedded_help = config.embedded_help
+Config = config
 
 __plugin_meta__ = PluginMetadata(
     name="漂流瓶",
@@ -48,14 +52,11 @@ read_bottle = on_command("查看漂流瓶", priority=1, block=True)
 bottle_help = on_command("漂流瓶", aliases={"漂流瓶菜单"}, priority=1, block=True)
 
 
-
-
 @bottle_help.handle()
 async def _():
     await bottle_help.finish(
         "\n漂流瓶使用帮助" + bottle_help_text
     )
-
 
 
 @read_bottle.handle()
@@ -90,12 +91,11 @@ async def _(bot: Bot, foo: Message = CommandArg()):
 
     # 处理消息
     messages = await botte_routing(bot, bottle_data, bottle)
-    
+
     # 发送消息
     for message in messages:
         await read_bottle.send(message)
     await read_bottle.finish()
-
 
 
 @comment.handle()
@@ -116,7 +116,6 @@ async def _(event: GroupMessageEvent, foo: Message = CommandArg()):
         await comment.finish("评论成功！")
 
 
-
 @up_bottle.handle()
 async def _(event: GroupMessageEvent, args: Message = CommandArg()):
     try:
@@ -131,7 +130,6 @@ async def _(event: GroupMessageEvent, args: Message = CommandArg()):
         await up_bottle.finish(f"点赞成功,现在有{num}个赞！")
 
 
-
 @get_bottle.handle(parameterless=[Cooldown(cooldown=6)])
 async def _(bot: Bot):
     bottle = Bottle(data_deal.conn_bottle)
@@ -141,12 +139,11 @@ async def _(bot: Bot):
 
     # 处理消息
     messages = await botte_routing(bot, bottle_data, bottle)
-    
+
     # 发送消息
     for message in messages:
         await get_bottle.send(message)
     await get_bottle.finish()
-
 
 
 @throw.handle(parameterless=[Cooldown(cooldown=6)])
