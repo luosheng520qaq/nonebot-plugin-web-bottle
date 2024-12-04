@@ -7,7 +7,7 @@ require("nonebot_plugin_localstore")
 import nonebot_plugin_localstore as store  # noqa: E402
 
 drive = get_driver()
-
+conn_bottle: sqlite3.Connection
 
 @drive.on_startup
 def _():

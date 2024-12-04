@@ -20,35 +20,4 @@ class Config(BaseModel):
     qq_markdown: bool = False  # QQMD适配，请自行申请并修改to_msg.py中的模板
     bottle_account: str = 'admin'
     bottle_password: str = 'password'
-
-
-config = get_plugin_config(Config)
-
-max_bottle_pic = config.max_bottle_pic
-logger.success(f"最大图片数量{max_bottle_pic}")
-'''一个瓶子最大的图片数量'''
-max_bottle_liens = config.max_bottle_liens
-'''一个瓶子的最大换行长度'''
-max_bottle_word = config.max_bottle_word
-'''瓶子内容最多允许的字数'''
-max_bottle_comments = config.max_bottle_comments
-'''单个瓶子捡取时展示的最大评论数量'''
-
-bottle_msg_uname = config.bottle_msg_uname
-'''启用漂流瓶玩家昵称获取展示'''
-bottle_msg_gname = config.bottle_msg_gname
-'''启用漂流瓶群昵称获取展示（同上）'''
-default_nickname = config.default_nickname
-'''定义的玩家默认昵称'''
-print(default_nickname)
-
-bottle_msg_split = config.bottle_msg_split
-'''瓶子本体内容与评论分段发送'''
-embedded_help = config.embedded_help
-'''在丢瓶子未填写内容时回复帮助文本'''
-qq_markdown = config.qq_markdown
-'''官方MD适配'''
-bottle_account = config.bottle_account
-print(bottle_account)
-bottle_password = config.bottle_password
-print(bottle_password)
+    expire_time: int = 12   # 登录态过期时间（单位：小时）

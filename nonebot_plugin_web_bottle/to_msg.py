@@ -2,18 +2,25 @@ import base64
 import httpx
 import json
 import io
+
+import nonebot
 from PIL import Image
 from nonebot import require
 from nonebot.adapters.onebot.v11 import Bot, Message, MessageSegment
 from .web_bottle import Bottle
-from .config import (
-    max_bottle_comments,
-    bottle_msg_uname,
-    bottle_msg_gname,
-    bottle_msg_split,
-    default_nickname,
-    qq_markdown
-)
+from .config import Config
+
+driver = nonebot.get_driver()
+global_config = driver.config
+config = Config.parse_obj(global_config)
+max_bottle_comments = config.max_bottle_comments
+bottle_msg_uname = config.bottle_msg_uname
+bottle_msg_gname = config.bottle_msg_gname
+bottle_msg_split = config.bottle_msg_split
+default_nickname = config.default_nickname
+qq_markdown = config.qq_markdown
+
+
 # require("Tea_你好茶茶")
 # require("Tea_API")
 # from src.core.Tea_你好茶茶 import 玩家昵称接口

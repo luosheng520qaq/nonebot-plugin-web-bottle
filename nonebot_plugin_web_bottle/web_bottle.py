@@ -23,7 +23,6 @@ from pydantic import BaseModel
 from starlette.templating import _TemplateResponse
 
 from . import data_deal
-from .config import max_bottle_pic,bottle_account,bottle_password
 from fastapi import Depends, FastAPI, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse,JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -36,6 +35,8 @@ from pathlib import Path
 import secrets
 import base64
 from hmac import compare_digest
+from datetime import datetime, timedelta
+from .config import Config
 
 require("nonebot_plugin_localstore")
 
@@ -48,13 +49,15 @@ if not isinstance(app, FastAPI):
     raise RuntimeError(msg)  # noqa: TRY004
 
 driver = get_driver()
+config = driver.config
+config = Config.parse_obj(config)
 
 # 添加会话中间件
-app.add_middleware(SessionMiddleware, secret_key="your_secret_key")
+app.add_middleware(SessionMiddleware, secret_key=secrets.token_hex(32))
 
 # 定义账号和密码
-account = bottle_account
-password = bottle_password
+account = config.bottle_account
+password = config.bottle_password
 password_sha256 = hashlib.sha256(password.encode("utf-8")).hexdigest()
 
 security = HTTPBasic()
@@ -83,8 +86,12 @@ class BottleInfo(BaseModel):
 
 # 登录依赖项
 def login_required(request: Request):
-    if 'user' not in request.session:
-        raise HTTPException(status_code=401, detail="请访问/login页面登陆后操作")
+    if 'user' not in request.session and (datetime.now() >= datetime.fromtimestamp(request.session.get('expire_time', datetime.now().timestamp()))):
+        raise HTTPException(
+            status_code=HTTP_302_FOUND,
+            detail="未登录或登录已过期，请访问/login进行登录",
+            headers={"Location": "/login"}
+        )
 
 
 login_static_dir = plugin_dir / "templates" / "login" / "static"
@@ -100,6 +107,8 @@ async def login_page(request: Request):
 async def login(username: str = Form(...), password: str = Form(...), request: Request = None):
     if compare_digest(username,account) and compare_digest(password,password_sha256):
         request.session['user'] = username
+        current_time = datetime.now()
+        request.session['expire_time'] = (current_time+timedelta(hours=config.expire_time)).timestamp()
         return RedirectResponse(url="/check", status_code=HTTP_302_FOUND)
 
     # 登录失败时返回 JSON 响应，带有错误信息
@@ -121,7 +130,7 @@ async def get_random_bottle(user: str = Depends(login_required)) -> BottleInfo:
     bottle = Bottle(conn=data_deal.conn_bottle)
     b = await bottle.random_get_bottle()
     if not b:
-        raise HTTPException(status_code=404, detail="No bottles found")
+        raise HTTPException(status_code=404, detail="漂流瓶不存在")
 
     images = await bottle.get_bottle_images(b["id"])
     images_base64 = [base64.b64encode(img).decode("utf-8") for img in images]
@@ -249,7 +258,7 @@ async def cache_file(msg: Message, image_id: int, conn: Connection) -> None:
     :param conn: 数据库连接
     """
     semaphore = asyncio.Semaphore(2)  # 控制并发任务数量
-    max_number = max_bottle_pic
+    max_number = config.max_bottle_pic
     async with httpx.AsyncClient() as client:
         tasks = [
             cache_image_url(seg, client, image_id, conn, semaphore)
