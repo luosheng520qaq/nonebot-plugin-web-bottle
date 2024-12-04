@@ -102,6 +102,7 @@ max_bottle_comments=3   # 捡瓶子最多展示评论条数
 bottle_msg_uname=True   # 为False时关闭发送者昵称获取展示 适用于官方Bot或想要提高响应速度时
 bottle_msg_gname=True   # 为False时关闭群聊昵称获取展示 同上
 qq_markdown=False   # QQMD适配，请自行申请并修改to_msg.py中的模板
+expire_time=12  # 登录态过期时间（单位：小时）
 ```
 
 官方bot仅试过使用 [Gensokyo](https://github.com/Hoshinonyaruko/Gensokyo) 正常运行，野生机器人推荐使用NapCat，LLOneBot ,Lagrange 等
