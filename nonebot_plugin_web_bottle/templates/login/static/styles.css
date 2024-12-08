@@ -1,108 +1,127 @@
+/* 全局样式 */
 body {
-    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-family: 'qiantu', Arial, sans-serif;
+    background-color: #ffe4e1; /* 浅粉色背景 */
     margin: 0;
     padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background: url('/login/static/images/background.jpg') no-repeat center center fixed; /* 背景图片 */
-    background-size: cover; /* 使背景图片覆盖整个屏幕 */
+    overflow-x: hidden;
+    color: #333; /* 文本颜色 */
 }
 
-.login-container {
-    background: rgba(255, 255, 255, 0.9); /* 半透明白色背景 */
-    border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 6px 20px rgba(0, 0, 0, 0.1);
-    padding: 30px;
-    width: 400px; /* 增加宽度 */
-    text-align: center;
-    position: relative;
-    z-index: 1; /* 确保登录框在模糊背景之上 */
-    backdrop-filter: blur(3px); /* 毛玻璃效果 */
-    -webkit-backdrop-filter: blur(10px); /* Safari 和 Chrome 的兼容性 */
+/* 卡片样式 */
+.card {
+    background: linear-gradient(145deg, #ffccf9, #ffc3a0); /* 渐变背景 */
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    border: 2px solid #ffd1dc; /* 可爱的粉色边框 */
 }
 
-.login-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, #ff69b4, #ffe6f7, #ff69b4);
-    opacity: 0.2;
-    border-radius: 15px;
-    z-index: -1;
+/* 按钮样式 */
+.btn {
+    background-color: #ff87ab; /* 按钮背景色 */
+    color: #fff;
+    font-size: 1.2rem;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 25px;
+    transition: transform 0.2s, background-color 0.3s;
 }
 
-.login-container h2 {
-    color: #ff69b4; /* 粉色标题 */
-    margin-bottom: 20px;
-    font-size: 24px;
-    font-weight: bold;
+.btn:hover {
+    background-color: #ff5e78; /* 按钮悬停颜色 */
+    transform: scale(1.05); /* 放大效果 */
 }
 
-.login-container input[type="text"],
-.login-container input[type="password"] {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    transition: border-color 0.3s ease;
+/* 输入框样式 */
+.floating-input {
+    border: 2px solid #ffd1dc;
+    border-radius: 12px;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-size: 1rem;
+    padding: 0.8rem 1rem;
+    transition: border-color 0.3s;
 }
 
-.login-container input[type="text"]:focus,
-.login-container input[type="password"]:focus {
-    border-color: #ff69b4;
+.floating-input:focus {
+    border-color: #ff87ab; /* 焦点时的颜色 */
     outline: none;
 }
 
-.login-container button {
-    width: 100%;
-    padding: 10px;
-    background: linear-gradient(135deg, #ff69b4, #ff1493);
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-    font-size: 16px;
+/* 标签样式 */
+label {
+    color: #ff6f91; /* 浅粉色文字 */
+    font-size: 1rem;
+}
+
+/* 标题样式 */
+h2 {
+    color: #ff5e78; /* 深粉色标题 */
+    font-size: 2rem;
     font-weight: bold;
 }
 
-.login-container button:hover {
-    background: linear-gradient(135deg, #ff1493, #ff69b4);
+/* 左侧内容样式 */
+.content-left {
+    background: linear-gradient(145deg, #ffdde1, #ffc4d6);
+    padding: 2rem;
+    border-radius: 16px 0 0 16px;
 }
 
-/* 其他装饰性元素 */
-.login-container .decorative-circle {
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    background: rgba(255, 105, 180, 0.5);
-    border-radius: 50%;
-    filter: blur(20px);
-    z-index: -1;
+/* 图片样式 */
+.image-right {
+    border-radius: 16px;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
 }
 
-.login-container .decorative-circle.top-left {
-    top: -50px;
-    left: -50px;
+.image-right:hover {
+    transform: scale(1.1); /* 图片放大效果 */
 }
 
-.login-container .decorative-circle.bottom-right {
-    bottom: -50px;
-    right: -50px;
+/* 错误弹窗样式 */
+.modal-content {
+    background: linear-gradient(145deg, #ffe4e1, #ffd1dc); /* 渐变背景 */
+    border-radius: 16px;
+    color: #ff5e78; /* 文本颜色 */
 }
 
-.login-container .decorative-circle.top-right {
-    top: -50px;
-    right: -50px;
+.modal-header {
+    background-color: #ff87ab; /* 标题背景 */
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    color: #fff;
 }
 
-.login-container .decorative-circle.bottom-left {
-    bottom: -50px;
-    left: -50px;
+.modal-footer {
+    border-top: none;
+    background-color: #ffdde1; /* 底部背景 */
+}
+
+/* 垂直居中对齐 */
+.height-self-center {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 按钮悬停时的动效 */
+.marlene-btn-login:hover {
+    background-color: #ff5e78;
+    color: #fff;
+    transform: translateY(-3px);
+}
+
+/* 自适应处理 */
+@media (max-width: 768px) {
+    .content-left,
+    .content-right {
+        border-radius: 16px !important;
+    }
+
+    .image-right {
+        width: 100%; /* 在小屏幕时图片占满 */
+        margin-top: 1rem;
+    }
 }

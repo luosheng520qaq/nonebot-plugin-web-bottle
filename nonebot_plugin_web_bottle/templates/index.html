@@ -27,6 +27,20 @@
         }
     </style>
     <script>
+        async function updatePendingCount() {
+            try {
+                const response = await fetch('/check');
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('pending-count').innerText = data.pending_count;
+                } else {
+                    console.error('获取待审核瓶子数量失败:', await response.text());
+                }
+            } catch (error) {
+                console.error('发生错误:', error);
+            }
+        }
+
         async function fetchBottle() {
             try {
                 const response = await fetch('/bottles/random');
@@ -74,7 +88,10 @@
                 const id = document.getElementById('id').innerText;
                 const response = await fetch(`/bottles/approve/${id}`, { method: 'POST' });
                 if (response.ok) {
-                    fetchBottle();
+                    // 成功批准后刷新当前瓶子信息
+                    await fetchBottle();
+                    // 更新剩余待审核的瓶子数量
+                    await updatePendingCount();
                 } else {
                     console.error('审核通过失败:', await response.json());
                 }
@@ -83,21 +100,35 @@
             }
         }
 
-        async function refuseBottle() {
+        async function updatePendingCount() {
             try {
-                const id = document.getElementById('id').innerText;
-                const response = await fetch(`/bottles/refuse/${id}`, { method: 'POST' });
+                const response = await fetch('/check');
                 if (response.ok) {
-                    fetchBottle();
+                    const htmlText = await response.text(); // 获取返回的 HTML
+                    console.log('后端返回的 HTML:', htmlText); // 打印返回的 HTML 供调试
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(htmlText, 'text/html');
+                    const pendingCountElement = doc.querySelector('#pending-count');
+                    if (pendingCountElement) {
+                        document.getElementById('pending-count').innerText = pendingCountElement.innerText;
+                        console.log('更新 pending-count 成功:', pendingCountElement.innerText);
+                    } else {
+                        console.error('未找到 #pending-count 元素');
+                    }
                 } else {
-                    console.error('审核拒绝失败:', await response.json());
+                    console.error('获取待审核瓶子数量失败:', await response.text());
                 }
             } catch (error) {
                 console.error('发生错误:', error);
             }
         }
 
-        window.onload = fetchBottle;
+
+
+        window.onload = async () => {
+            await Promise.all([fetchBottle(), updatePendingCount()]);
+        };
+
     </script>
 </head>
 <body>
