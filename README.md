@@ -6,7 +6,7 @@
 
 
 # nonebot_plugin_web_bottle
-![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
 ![PyPI - Version](https://img.shields.io/pypi/v/nonebot-plugin-web-bottle)
 [![pdm-managed](https://img.shields.io/endpoint?url=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2Fpdm-project%2F.github%2Fbadge.json)](https://pdm-project.org)
 
@@ -47,7 +47,7 @@ nb plugin install nonebot-plugin-web-bottle
 ## 存储位置
 本插件使用商店的 plugin-localstore(https://github.com/nonebot/plugin-localstore)
 默认存储地址请前往其文档查看。
-可以自己配置到机器人主目录，挡板后续随时查看
+可以自己配置到机器人主目录，方便后续随时查看
 ```
 localstore_cache_dir=   
 localstore_config_dir=
@@ -131,6 +131,7 @@ expire_time=12  # 登录态过期时间（单位：小时）
 - [x] 提交至nonebot商店 
 - [x] 修改漂流瓶投掷者输出方式为 QQ昵称 与 群昵称（已经编写 具体适配情况取决于你的协议端）
 - [x] 针对使用QQ开放平台BOT的场景进行调整（支持Gensokyo项目的适配）
-- [ ] 新增一个网页填入id查看漂流瓶详情
+- [x] 增加登录验证
+- [ ] 新增提醒
 - [ ] 美化页面 （等几百年后我学会css再说吧）
 - [ ] 优化性能
