@@ -100,6 +100,22 @@
             }
         }
 
+
+        async function refuseBottle() {
+            try {
+                const id = document.getElementById('id').innerText;
+                const response = await fetch(`/bottles/refuse/${id}`, { method: 'POST' });
+                if (response.ok) {
+                    fetchBottle();
+                } else {
+                    console.error('审核拒绝失败:', await response.json());
+                }
+            } catch (error) {
+                console.error('发生错误:', error);
+            }
+        }
+
+
         async function updatePendingCount() {
             try {
                 const response = await fetch('/check');
