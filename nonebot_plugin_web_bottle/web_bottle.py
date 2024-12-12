@@ -1,42 +1,36 @@
-import asyncio
-import base64
-import hashlib
-import random
-from http import HTTPStatus
-from pathlib import Path
-from sqlite3 import Connection
-from typing import Any, Literal
-
 from io import BytesIO
 from PIL import Image
-
 import aiofiles
 import httpx
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from nonebot import get_app, get_driver, require
-from nonebot.adapters.onebot.v11 import Message, MessageSegment
-from nonebot.log import logger
-from pydantic import BaseModel
-from starlette.templating import _TemplateResponse
 
+from nonebot.adapters.onebot.v11 import Message, MessageSegment
+from nonebot import get_app, get_driver, require
+from nonebot.log import logger
+from .config import Config
 from . import data_deal
-from fastapi import Depends, FastAPI, HTTPException, Request, Form
+
 from fastapi.responses import HTMLResponse, RedirectResponse,JSONResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi import Depends, FastAPI, HTTPException, Request, Form
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.gzip import GZipMiddleware
+from starlette.templating import _TemplateResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from starlette.status import HTTP_302_FOUND
+from fastapi.security import HTTPBasic
 from pydantic import BaseModel
+
+from datetime import datetime, timedelta
+from hmac import compare_digest
+from typing import Any, Literal
+from sqlite3 import Connection
+from http import HTTPStatus
 from pathlib import Path
 import secrets
+import asyncio
+import hashlib
 import base64
-from hmac import compare_digest
-from datetime import datetime, timedelta
-from .config import Config
+import random
 
 require("nonebot_plugin_localstore")
 
@@ -54,6 +48,7 @@ config = Config.parse_obj(config)
 
 # 添加会话中间件
 app.add_middleware(SessionMiddleware, secret_key=secrets.token_hex(32))
+app.add_middleware(GZipMiddleware, minimum_size=100)
 
 # 定义账号和密码
 account = config.bottle_account
