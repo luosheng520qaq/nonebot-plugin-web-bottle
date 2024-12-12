@@ -1,14 +1,14 @@
+from nonebot.adapters.onebot.v11 import Bot, Message, MessageSegment
+from .web_bottle import Bottle
+from .config import Config
+import nonebot
+
+from PIL import Image
+
 import base64
 import httpx
 import json
 import io
-
-import nonebot
-from PIL import Image
-from nonebot import require
-from nonebot.adapters.onebot.v11 import Bot, Message, MessageSegment
-from .web_bottle import Bottle
-from .config import Config
 
 driver = nonebot.get_driver()
 global_config = driver.config
@@ -20,12 +20,11 @@ bottle_msg_split = config.bottle_msg_split
 default_nickname = config.default_nickname
 qq_markdown = config.qq_markdown
 
-
 # require("Tea_你好茶茶")
 # require("Tea_API")
 # from src.core.Tea_你好茶茶 import 玩家昵称接口
 # from src.core.Tea_API import 停用MD, ServerAPI
-ServerAPI = "127.0.0.1:8080"    # 请参考Gensokyo文档进行接口配置
+ServerAPI = "127.0.0.1:8080"  # 请参考Gensokyo文档进行接口配置
 MDID01 = "000000000_0000000000"
 MDID02 = "000000001_0000000001"
 
@@ -108,8 +107,6 @@ async def format_comments(bot: Bot, comments: str) -> str:
     return formatted_comments
 
 
-
-
 # 以下为QQMD适配
 async def get_botte_tomd(bot: Bot, bottle_data: dict, bottle: Bottle) -> list:
     """
@@ -129,7 +126,7 @@ async def get_botte_tomd(bot: Bot, bottle_data: dict, bottle: Bottle) -> list:
     message = []
 
     # 瓶子本体文本获取
-    msg_one = f"Time：{bottle_data['timeinfo']}\rBottle_id：{bottle_data['id']}\r\r{default_nickname}："    # {玩家昵称接口(bottle_data['userid'])}："
+    msg_one = f"Time：{bottle_data['timeinfo']}\rBottle_id：{bottle_data['id']}\r\r{default_nickname}："  # {玩家昵称接口(bottle_data['userid'])}："
     msg_one += bottle_data['content'].replace("\n", "\r") if bottle_data['content'] else "什么都没写"
 
     # 插入图片部分
@@ -235,7 +232,8 @@ async def format_comments_md(bot: Bot, comments: str, bottle_id: int) -> str:
         comment_count += 1
 
     all_user = len(comment_lines)
-    default_avatar = "https://tse1-mm.cn.bing.net/th/id/OIP-C.FQeBsP0v7u7cZQO1Z5do9gAAAA?w=34&h=34&c=7&r=0&o=5&dpr=2.5&pid=1.7"
+    default_avatar = "https://tse1-mm.cn.bing.net/th/id/OIP-C.FQeBsP0v7u7cZQO1Z5do9gAAAA?w=34&h=34&c=7&r=0&o=5&dpr=2" \
+                     ".5&pid=1.7"
     data = {
         "markdown": {
             "custom_template_id": "102069827_1723800235",
@@ -273,6 +271,6 @@ async def botte_routing(bot: Bot, bottle_data: dict, bottle: Bottle):
     """
     根据配置选择发送 Markdown 或普通消息
     """
-    if qq_markdown:     # and not 停用MD(bottle_data["userid"]):
+    if qq_markdown:  # and not 停用MD(bottle_data["userid"]):
         return await get_botte_tomd(bot, bottle_data, bottle)
     return await get_botte_all(bot, bottle_data, bottle)

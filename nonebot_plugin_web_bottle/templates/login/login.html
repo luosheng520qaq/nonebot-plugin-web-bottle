@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh">
 
 <head>
     <meta charset="utf-8">
@@ -40,7 +40,7 @@
 
 <body class=" ">
     <div class="wrapper"
-        style="background: url(/login/static/image/background.png); background-attachment: fixed; background-size: cover;">
+        style="background-image: image-set(url('/login/static/images/background2.webp') type('image/webp'), url('/login/static/images/background2.png') type('image/png')); background-attachment: fixed; background-size: cover;">
         <section class="login-content">
             <div class="container">
                 <div class="row align-items-center justify-content-center height-self-center">
@@ -73,7 +73,10 @@
                                         </div>
                                     </div>
                                     <div class="col-lg-6 content-right">
-                                        <img src="/login/static/picture/linglan.png" class="img-fluid image-right" alt="">
+                                        <picture>
+                                            <source srcset="/login/static/images/linglan.webp" type="image/webp" class="img-fluid image-right">
+                                            <img src="/login/static/image/linglan.png" class="img-fluid image-right" alt="">
+                                        </picture>
                                     </div>
                                 </div>
                             </div>

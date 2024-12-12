@@ -1,6 +1,5 @@
-from nonebot import get_plugin_config
 from pydantic import BaseModel
-from nonebot import logger
+
 
 class Config(BaseModel):
     # 丢瓶子规则配置
@@ -20,4 +19,4 @@ class Config(BaseModel):
     qq_markdown: bool = False  # QQMD适配，请自行申请并修改to_msg.py中的模板
     bottle_account: str = 'admin'
     bottle_password: str = 'password'
-    expire_time: int = 12   # 登录态过期时间（单位：小时）
+    expire_time: int = 12  # 登录态过期时间（单位：小时）

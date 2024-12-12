@@ -1,6 +1,6 @@
 body {
     font-family: 'Comic Sans MS', cursive, sans-serif; /* 更换为可爱的字体 */
-    background: url('/static/images/background.jpg') no-repeat center center fixed;
+    background: image-set(url('/static/images/background.webp') type('image/webp'), url('/static/images/background.jpg') type('image/jpeg')) no-repeat center center fixed;
     background-size: cover;
     background-attachment: fixed; /* 确保背景图片在滚动时保持固定 */
     margin: 0;
