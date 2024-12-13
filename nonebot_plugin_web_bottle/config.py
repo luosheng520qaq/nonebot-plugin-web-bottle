@@ -20,3 +20,5 @@ class Config(BaseModel):
     bottle_account: str = 'admin'
     bottle_password: str = 'password'
     expire_time: int = 12  # 登录态过期时间（单位：小时）
+
+    gzip_level: int = 9

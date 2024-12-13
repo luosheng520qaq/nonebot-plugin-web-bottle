@@ -110,40 +110,45 @@
             var username = document.getElementById('username').value;
             var password = document.getElementById('password').value;
 
-            // 调用加密算法
-            crypto.subtle.digest('SHA-256', new TextEncoder().encode(password))
-                .then(hash => {
-                    var hashArray = Array.from(new Uint8Array(hash));
-                    var hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                    var formData = new FormData();
-                    formData.append('username', username);
-                    formData.append('password', hashHex);
+            // 对用户名和密码进行散列
+            Promise.all([
+                crypto.subtle.digest('SHA-256', new TextEncoder().encode(username)),
+                crypto.subtle.digest('SHA-256', new TextEncoder().encode(password))
+            ]).then(hashes => {
+                var usernameHashArray = Array.from(new Uint8Array(hashes[0]));
+                var usernameHashHex = usernameHashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-                    fetch('/login', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => {
-                        if (response.status === 200) {
-                            window.location.replace(`${window.location.origin}/check`);
-                        } else {
-                            return response.json();
-                        }
-                    })
-                    .then(data => {
-                        if (data && data.detail) {
-                            showErrorModal(data.detail);  // 显示弹窗并传递错误信息
-                        }
-                    })
-                    .catch(error => {
-                        console.log(error);
-                        showErrorModal('网络错误，请稍后再试。');  // 显示网络错误
-                    });
+                var passwordHashArray = Array.from(new Uint8Array(hashes[1]));
+                var passwordHashHex = passwordHashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+                var formData = new FormData();
+                formData.append('username', usernameHashHex);
+                formData.append('password', passwordHashHex);
+
+                fetch('/login', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (response.status === 200) {
+                        window.location.replace(`${window.location.origin}/check`);
+                    } else {
+                        return response.json();
+                    }
+                })
+                .then(data => {
+                    if (data && data.detail) {
+                        showErrorModal(data.detail);  // 显示弹窗并传递错误信息
+                    }
                 })
                 .catch(error => {
                     console.log(error);
-                    showErrorModal('密码加密失败，请稍后再试。');  // 显示加密错误
+                    showErrorModal('网络错误，请稍后再试。');  // 显示网络错误
                 });
+            }).catch(error => {
+                console.log(error);
+                showErrorModal('用户名或密码加密失败，请稍后再试。');  // 显示加密错误
+            });
         }
 
         // 显示弹窗的函数

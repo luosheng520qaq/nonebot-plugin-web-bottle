@@ -44,16 +44,19 @@ if not isinstance(app, FastAPI):
 
 driver = get_driver()
 config = driver.config
-config = Config.parse_obj(config)
+config: Config = Config.parse_obj(config)
+
+gzip_level = config.gzip_level
 
 # 添加会话中间件
 app.add_middleware(SessionMiddleware, secret_key=secrets.token_hex(32))
-app.add_middleware(GZipMiddleware, minimum_size=100)
+app.add_middleware(GZipMiddleware, minimum_size=100, compresslevel=9)
 
 # 定义账号和密码
 account = config.bottle_account
 password = config.bottle_password
 password_sha256 = hashlib.sha256(password.encode("utf-8")).hexdigest()
+account_sha256 = hashlib.sha256(account.encode("utf-8")).hexdigest()
 
 security = HTTPBasic()
 
@@ -100,7 +103,7 @@ async def login_page(request: Request):
 
 @app.post("/login")
 async def login(username: str = Form(...), password: str = Form(...), request: Request = None):
-    if compare_digest(username,account) and compare_digest(password,password_sha256):
+    if compare_digest(username,account_sha256) and compare_digest(password,password_sha256):
         request.session['user'] = username
         current_time = datetime.now()
         request.session['expire_time'] = (current_time+timedelta(hours=config.expire_time)).timestamp()
