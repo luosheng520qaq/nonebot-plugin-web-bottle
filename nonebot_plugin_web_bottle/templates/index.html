@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>瓶子审核</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
     <style>
         /* 添加 zoomed 类的 CSS */
         .zoomed {
@@ -41,6 +42,22 @@
             }
         }
 
+        async function base64ToArrayBuffer(base64) {
+            return new Promise((resolve, reject) => {
+                try {
+                var binaryString = window.atob(base64);
+                var len = binaryString.length;
+                var bytes = new ArrayBuffer(len);
+                for (var i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                resolve(bytes.buffer);
+                } catch (error) {
+                reject(error);
+                }
+            });
+            }
+
         async function fetchBottle() {
             try {
                 const response = await fetch('/bottles/random');
@@ -49,7 +66,34 @@
                     document.getElementById('bottle').style.display = 'none';
                     return;
                 }
-                const bottle = await response.json();
+                const data = await response.json();
+                const encryptedData = window.atob(data.Data);
+                const iv = window.atob(data.a);
+                const encryptedDataArray = Uint8Array.from(encryptedData, c => c.charCodeAt(0));
+                const ivArray = Uint8Array.from(iv, c => c.charCodeAt(0));
+                const keyData = CryptoJS.SHA256(data.a);
+                const keyHex = CryptoJS.enc.Hex.stringify(keyData);
+                const keyArray = Uint8Array.from(keyHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                const key = await window.crypto.subtle.importKey(
+                    "raw",
+                    keyArray,
+                    { name: "AES-CBC" },
+                    false,
+                    ["decrypt"]
+                );
+                const decryptedData = await window.crypto.subtle.decrypt(
+                    {
+                        name: "AES-CBC",
+                        iv: ivArray
+                    },
+                    key,
+                    encryptedDataArray
+                );
+                const dec = new TextDecoder();
+                const decrypted = dec.decode(decryptedData);
+
+                const bottle = JSON.parse(decrypted)
+
                 document.getElementById('id').innerText = bottle.ID;
                 document.getElementById('content').innerText = bottle.Content;
                 document.getElementById('userid').innerText = bottle.UserID;

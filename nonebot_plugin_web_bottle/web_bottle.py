@@ -1,5 +1,6 @@
-from io import BytesIO
-from PIL import Image
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import padding
 import aiofiles
 import httpx
 
@@ -9,7 +10,7 @@ from nonebot.log import logger
 from .config import Config
 from . import data_deal
 
-from fastapi.responses import HTMLResponse, RedirectResponse,JSONResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi import Depends, FastAPI, HTTPException, Request, Form
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.gzip import GZipMiddleware
@@ -26,11 +27,14 @@ from typing import Any, Literal
 from sqlite3 import Connection
 from http import HTTPStatus
 from pathlib import Path
+from io import BytesIO
+from PIL import Image
 import secrets
 import asyncio
 import hashlib
 import base64
 import random
+import os
 
 require("nonebot_plugin_localstore")
 
@@ -47,10 +51,10 @@ config = driver.config
 config: Config = Config.parse_obj(config)
 
 gzip_level = config.gzip_level
-
+print(gzip_level)
 # 添加会话中间件
 app.add_middleware(SessionMiddleware, secret_key=secrets.token_hex(32))
-app.add_middleware(GZipMiddleware, minimum_size=100, compresslevel=9)
+app.add_middleware(GZipMiddleware, minimum_size=100, compresslevel=int(gzip_level))
 
 # 定义账号和密码
 account = config.bottle_account
@@ -82,9 +86,15 @@ class BottleInfo(BaseModel):
     Images: list[str]
 
 
+class AESCryptoData(BaseModel):
+    Data: str
+    a: str
+
+
 # 登录依赖项
 def login_required(request: Request):
-    if 'user' not in request.session and (datetime.now() >= datetime.fromtimestamp(request.session.get('expire_time', datetime.now().timestamp()))):
+    if 'user' not in request.session and (
+            datetime.now() >= datetime.fromtimestamp(request.session.get('expire_time', datetime.now().timestamp()))):
         raise HTTPException(
             status_code=HTTP_302_FOUND,
             detail="未登录或登录已过期，请访问/login进行登录",
@@ -103,10 +113,10 @@ async def login_page(request: Request):
 
 @app.post("/login")
 async def login(username: str = Form(...), password: str = Form(...), request: Request = None):
-    if compare_digest(username,account_sha256) and compare_digest(password,password_sha256):
+    if compare_digest(username, account_sha256) and compare_digest(password, password_sha256):
         request.session['user'] = username
         current_time = datetime.now()
-        request.session['expire_time'] = (current_time+timedelta(hours=config.expire_time)).timestamp()
+        request.session['expire_time'] = (current_time + timedelta(hours=config.expire_time)).timestamp()
         return RedirectResponse(url="/check", status_code=HTTP_302_FOUND)
 
     # 登录失败时返回 JSON 响应，带有错误信息
@@ -123,8 +133,8 @@ async def read_item(request: Request, user: str = Depends(login_required)) -> _T
     return templates.TemplateResponse("index.html", {"request": request, "pending_count": pending_count})
 
 
-@app.get("/bottles/random", response_model=BottleInfo)
-async def get_random_bottle(user: str = Depends(login_required)) -> BottleInfo:
+@app.get("/bottles/random", response_model=AESCryptoData)
+async def get_random_bottle(request: Request, user: str = Depends(login_required)) -> AESCryptoData:
     bottle = Bottle(conn=data_deal.conn_bottle)
     b = await bottle.random_get_bottle()
     if not b:
@@ -132,8 +142,7 @@ async def get_random_bottle(user: str = Depends(login_required)) -> BottleInfo:
 
     images = await bottle.get_bottle_images(b["id"])
     images_base64 = [base64.b64encode(img).decode("utf-8") for img in images]
-
-    return BottleInfo(
+    data = BottleInfo(
         ID=b["id"],
         Content=b["content"],
         UserID=b["userid"],
@@ -141,6 +150,20 @@ async def get_random_bottle(user: str = Depends(login_required)) -> BottleInfo:
         TimeInfo=b["timeinfo"],
         State=b["state"],
         Images=images_base64,
+    ).json().encode("utf-8")
+    iv = os.urandom(16)
+    key = hashlib.sha256(base64.b64encode(iv)).digest()
+    print(hashlib.sha256(base64.b64encode(iv)).hexdigest())
+    padder = padding.PKCS7(algorithms.AES.block_size).padder()
+    padded_data = padder.update(data) + padder.finalize()
+
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    encryptor = cipher.encryptor()
+
+    encrypted_data = encryptor.update(padded_data) + encryptor.finalize()
+    return AESCryptoData(
+        Data=base64.b64encode(encrypted_data),
+        a=base64.b64encode(iv)
     )
 
 

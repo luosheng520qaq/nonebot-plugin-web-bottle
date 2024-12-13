@@ -15,6 +15,7 @@ def _():
     global conn_bottle  # noqa: PLW0603 # !WTF
     # 获取插件的数据目录
     plugin_data = store.get_data_dir("nonebot_plugin_web_bottle")
+    logger.info(f"漂流瓶插件数据存储目录将会在：{plugin_data}")
 
     # 确保目录存在
     plugin_data.mkdir(exist_ok=True)
