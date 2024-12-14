@@ -75,7 +75,7 @@ http://location:nonebot端口/comments 评论审核
 ```
 插件目录\templates\static\images
 ```
-可自行修改
+可自行修改，修改时请修改相应的webp图片
 ## 关于漂流瓶配置选项：
 为防止过多读取时内存占用过高，一个瓶子内最多允许有两张图片，如果需要更多，请在nonebot配置项写入 
 
@@ -103,6 +103,8 @@ bottle_msg_uname=True   # 为False时关闭发送者昵称获取展示 适用于
 bottle_msg_gname=True   # 为False时关闭群聊昵称获取展示 同上
 qq_markdown=False   # QQMD适配，请自行申请并修改to_msg.py中的模板
 expire_time=12  # 登录态过期时间（单位：小时）
+
+gzip_level=9    # gzip压缩等级
 ```
 
 官方bot仅试过使用 [Gensokyo](https://github.com/Hoshinonyaruko/Gensokyo) 正常运行，野生机器人推荐使用NapCat，LLOneBot ,Lagrange 等
