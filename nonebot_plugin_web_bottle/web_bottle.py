@@ -249,13 +249,7 @@ async def store_image_data(image_id: int, image_data: bytes, conn: Connection) -
     # 保存图像时应用有损压缩
     # 对于JPEG图像，可以调整quality参数来控制压缩级别
     # quality参数范围为1（最差）到95（最好），通常推荐值为75-85
-    format = image.format
-    if format in ['JPEG', 'JPG']:
-        image.save(output, format='JPEG', quality=75)  # 调整quality值以平衡质量和大小
-    else:
-        # 对于其他格式，如果支持，也尝试进行有损压缩
-        # 这里假设所有支持的格式都支持有损压缩
-        image.save(output, format=format, quality=75)
+    image.save(output, format='WEBP', quality=80)  # 调整quality值以平衡质量和大小
 
     # 获取压缩后的二进制数据
     compressed_image_data = output.getvalue()
