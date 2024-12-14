@@ -81,11 +81,13 @@ http://location:nonebot端口/comments 评论审核
 
 以下配置为插件默认值，如果您认为不需要修改，可以不添加
 ```
-# 登录密钥
-默认
+# 网页相关
+默认登录密钥
 bottle_account = 'admin'
 bottle_password = 'password'
-请务必修改
+expire_time=12  # 登录态过期时间（单位：小时）
+gzip_level=9    # gzip压缩等级（一般情况无需修改）
+
 
 # 丢瓶子规则配置
 max_bottle_pic=2    # 丢瓶子允许最多图片数量
@@ -102,9 +104,7 @@ max_bottle_comments=3   # 捡瓶子最多展示评论条数
 bottle_msg_uname=True   # 为False时关闭发送者昵称获取展示 适用于官方Bot或想要提高响应速度时
 bottle_msg_gname=True   # 为False时关闭群聊昵称获取展示 同上
 qq_markdown=False   # QQMD适配，请自行申请并修改to_msg.py中的模板
-expire_time=12  # 登录态过期时间（单位：小时）
 
-gzip_level=9    # gzip压缩等级
 ```
 
 官方bot仅试过使用 [Gensokyo](https://github.com/Hoshinonyaruko/Gensokyo) 正常运行，野生机器人推荐使用NapCat，LLOneBot ,Lagrange 等
