@@ -150,7 +150,10 @@
                 const id = document.getElementById('id').innerText;
                 const response = await fetch(`/bottles/refuse/${id}`, { method: 'POST' });
                 if (response.ok) {
-                    fetchBottle();
+                     // 成功批准后刷新当前瓶子信息
+                     await fetchBottle();
+                     // 更新剩余待审核的瓶子数量
+                     await updatePendingCount();
                 } else {
                     console.error('审核拒绝失败:', await response.json());
                 }
