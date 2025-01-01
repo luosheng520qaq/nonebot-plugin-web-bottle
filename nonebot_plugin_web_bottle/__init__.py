@@ -1,13 +1,13 @@
 from datetime import datetime
 import re
-
+import json
 from nonebot.adapters.onebot.v11 import Message, GroupMessageEvent, Bot
 from nonebot.adapters.onebot.v11.helpers import Cooldown
 from nonebot.plugin import PluginMetadata
 from nonebot.params import CommandArg
 from nonebot import on_command
 import nonebot
-
+import base64
 from .web_bottle import Bottle, id_add, serialize_message
 from .to_msg import botte_routing
 from .config import Config
@@ -21,6 +21,7 @@ max_bottle_liens = config.max_bottle_liens
 max_bottle_word = config.max_bottle_word
 max_bottle_pic = config.max_bottle_pic
 embedded_help = config.embedded_help
+coll_time = config.cooling_time
 Config = config
 
 __plugin_meta__ = PluginMetadata(
@@ -111,10 +112,18 @@ async def _(event: GroupMessageEvent, foo: Message = CommandArg()):
     bottle = Bottle(data_deal.conn_bottle)
     a = await bottle.add_comment_if_approved(bottle_id, text, str(event.user_id))
     if not a:
-        await comment.finish("评论失败，漂流瓶不存在")
+        await comment.send("评论失败，漂流瓶不存在")
     else:
-        await comment.finish("评论成功！")
-
+        await comment.send("评论成功！")
+    botid = event.self_id
+    if str(botid) != '102050518':
+        await comment.finish()
+    else:
+        md = {"keyboard": {"id": "102050518_1725470003"}}
+        json1 = json.dumps(md)
+        bytes = json1.encode('utf-8')
+        data = base64.b64encode(bytes).decode('utf-8')
+        await comment.finish(Message(f"[CQ:markdown,data=base64://{data}]"))
 
 @up_bottle.handle()
 async def _(event: GroupMessageEvent, args: Message = CommandArg()):
@@ -125,13 +134,21 @@ async def _(event: GroupMessageEvent, args: Message = CommandArg()):
     bottle = Bottle(data_deal.conn_bottle)
     a, num = await bottle.up_bottle(bid, str(event.user_id))
     if not a:
-        await up_bottle.finish("点赞失败，漂流瓶不存在或你已经点赞过了")
+        await up_bottle.send("点赞失败，漂流瓶不存在或你已经点赞过了")
     else:
-        await up_bottle.finish(f"点赞成功,现在有{num}个赞！")
+        await up_bottle.send(f"点赞成功,现在有{num}个赞！")
+    botid = event.self_id
+    if str(botid) != '102050518':
+        await up_bottle.finish()
+    else:
+        md = {"keyboard": {"id": "102050518_1725470003"}}
+        json1 = json.dumps(md)
+        bytes = json1.encode('utf-8')
+        data = base64.b64encode(bytes).decode('utf-8')
+        await up_bottle.finish(Message(f"[CQ:markdown,data=base64://{data}]"))
 
-
-@get_bottle.handle(parameterless=[Cooldown(cooldown=6)])
-async def _(bot: Bot):
+@get_bottle.handle(parameterless=[Cooldown(cooldown=coll_time)])
+async def _(bot: Bot,event: GroupMessageEvent):
     bottle = Bottle(data_deal.conn_bottle)
     bottle_data = await bottle.random_get_approves_bottle()
     if not bottle_data:
@@ -143,10 +160,19 @@ async def _(bot: Bot):
     # 发送消息
     for message in messages:
         await get_bottle.send(message)
+    botid = event.self_id
+    if str(botid) != '102050518':
+        await get_bottle.finish()
+    else:
+        md = {"keyboard": {"id": "102050518_1725470003"}}
+        json1 = json.dumps(md)
+        bytes = json1.encode('utf-8')
+        data = base64.b64encode(bytes).decode('utf-8')
+        await get_bottle.finish(Message(f"[CQ:markdown,data=base64://{data}]"))
     await get_bottle.finish()
 
 
-@throw.handle(parameterless=[Cooldown(cooldown=6)])
+@throw.handle(parameterless=[Cooldown(cooldown=coll_time)])
 async def _(event: GroupMessageEvent, args: Message = CommandArg()):
     if not args:
         if embedded_help:

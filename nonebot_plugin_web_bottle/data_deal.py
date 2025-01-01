@@ -3,16 +3,20 @@ import sqlite3
 from nonebot import get_driver, logger, require
 
 require("nonebot_plugin_localstore")
-
+from PIL import Image,UnidentifiedImageError
 import nonebot_plugin_localstore as store  # noqa: E402
-
+from io import BytesIO
 drive = get_driver()
 conn_bottle: sqlite3.Connection
+plugin_data = store.get_data_dir("nonebot_plugin_web_bottle")
 
+image_path = plugin_data / 'img'
+image_path.mkdir(parents=True, exist_ok=True)
 
 @drive.on_startup
 def _():
     global conn_bottle  # noqa: PLW0603 # !WTF
+
     # 获取插件的数据目录
     plugin_data = store.get_data_dir("nonebot_plugin_web_bottle")
     logger.info(f"漂流瓶插件数据存储目录将会在：{plugin_data}")
@@ -26,8 +30,9 @@ def _():
 
     # 检查数据库文件是否存在
     if not db_path.exists():
-        logger.error("数据库不存在，正在尝试创建！")
-        # 创建并连接到数据库
+        logger.warning("数据库不存在，将跳过创建 images 表！")
+
+        # 创建并连接到数据库（但不创建 images 表）
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         logger.info(f"尝试在路径 {db_path} 中建立表")
@@ -51,13 +56,6 @@ def _():
                 content TEXT,
                 state TEXT,
                 uid TEXT
-            )
-        """)
-
-        cursor.execute("""
-            CREATE TABLE images (
-                id INTEGER,  -- 保留 id 列但不是主键
-                data BLOB
             )
         """)
 
@@ -90,35 +88,62 @@ def _():
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
 
-        # 检查 images 表是否存在，并获取其结构
-        cursor.execute("PRAGMA table_info(images)")
-        columns = cursor.fetchall()
+        # 检查 images 表是否存在
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='images'")
+        images_table_exists = cursor.fetchone()
 
-        # 检查 id 是否为主键
-        is_id_primary_key = any(col[1] == 'id' and col[5] == 1 for col in columns)
+        if images_table_exists:
+            logger.info("检测到 images 表，正在迁移数据，请稍候...")
+            cursor.execute("SELECT id, data FROM images")
+            rows = cursor.fetchall()
 
-        if is_id_primary_key:
-            logger.info("images 表的 id 列为主键，正在去除主键约束！")
-            # 创建一个新的表，复制原数据
-            cursor.execute("""
-                CREATE TABLE images_new (
-                    id INTEGER,  -- 保留 id 列但不是主键
-                    data BLOB
-                )
-            """)
+            # 在迁移数据的循环中添加校验
+            for image_id, image_data in rows:
+                if not image_data:
+                    logger.warning(f"ID 为 {image_id} 的数据为空，跳过迁移！")
+                    continue
 
-            cursor.execute("INSERT INTO images_new (id, data) SELECT id, data FROM images")
+                # 确保对应的 ID 文件夹存在
+                target_dir = image_path / str(image_id)
+                target_dir.mkdir(parents=True, exist_ok=True)
 
-            # 删除旧表
+                try:
+                    # 打开二进制数据为图像
+                    image = Image.open(BytesIO(image_data))
+                    # 将图片转换为 webp 格式
+                    image = image.convert("RGB")  # 确保兼容性
+
+                    # 找到子文件夹中最大索引值，生成下一个文件名
+                    existing_files = list(target_dir.glob("*.webp"))
+                    max_index = -1  # 初始为 -1，如果没有文件则从 0 开始
+                    for file in existing_files:
+                        try:
+                            # 提取文件名中的数字索引（假设文件名格式为 image_<index>.webp）
+                            index = int(file.stem.split('_')[-1])  # 提取 "image_<index>" 中的 <index>
+                            max_index = max(max_index, index)
+                        except ValueError:
+                            continue  # 忽略无法解析为数字的文件名
+
+                    next_index = max_index + 1  # 下一个文件名的索引
+                    target_path = target_dir / f"image_{next_index}.webp"
+
+                    # 保存图片
+                    image.save(target_path, format="WEBP", quality=80)  # 调整质量以平衡大小
+                    logger.info(f"成功迁移 ID 为 {image_id} 的图片至 {target_path}")
+                except UnidentifiedImageError:
+                    logger.error(f"ID 为 {image_id} 的数据不是有效图片，跳过迁移！")
+                except Exception as e:
+                    logger.error(f"迁移 ID 为 {image_id} 的图片时发生未知错误：{e}")
+
+            logger.info("迁移完成，正在删除 images 表...")
             cursor.execute("DROP TABLE images")
-            # 重命名新表为原表名
-            cursor.execute("ALTER TABLE images_new RENAME TO images")
             conn.commit()
-            logger.success("images 表的主键约束已去除！")
+            logger.success("images 表已删除，数据迁移成功！")
 
         conn.close()
 
     logger.success("加载成功！")
+
     # 创建全局数据库连接
     db_path = store.get_data_dir("nonebot_plugin_web_bottle") / "bottle.db"
     conn_bottle = sqlite3.connect(db_path, check_same_thread=False)

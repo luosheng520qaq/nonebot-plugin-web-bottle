@@ -233,69 +233,65 @@ class NotSupportMessageError(Exception):
         return super().__str__()
 
 
-async def store_image_data(image_id: int, image_data: bytes, conn: Connection) -> None:
+async def store_image_file(image_id: int, image_data: bytes) -> None:
     """
-    存储图像数据到数据库，使用有损压缩减小文件大小。
+    存储图像数据到文件系统，使用有损压缩减小文件大小。
     :param image_id: 图像对应的 ID
     :param image_data: 图像的二进制数据
-    :param conn: 数据库连接
     """
     # 将二进制数据转换为Image对象
     image = Image.open(BytesIO(image_data))
 
-    # 创建一个BytesIO对象用于保存压缩后的图像数据
-    output = BytesIO()
+    # 创建以 image_id 为名的子文件夹
+    folder = image_path / str(image_id)
+    folder.mkdir(parents=True, exist_ok=True)
 
-    # 保存图像时应用有损压缩
-    # 对于JPEG图像，可以调整quality参数来控制压缩级别
-    # quality参数范围为1（最差）到95（最好），通常推荐值为75-85
-    image.save(output, format='WEBP', quality=80)  # 调整quality值以平衡质量和大小
+    # 找到子文件夹中最大索引值，生成下一个文件名
+    existing_files = list(folder.glob("*.webp"))
+    max_index = -1  # 初始为-1，如果没有文件则从0开始
+    for file in existing_files:
+        try:
+            # 提取文件名中的数字索引
+            index = int(file.stem)  # 去掉文件扩展名后解析为整数
+            max_index = max(max_index, index)
+        except ValueError:
+            continue  # 忽略无法解析为数字的文件名
 
-    # 获取压缩后的二进制数据
-    compressed_image_data = output.getvalue()
+    next_index = max_index + 1  # 下一个文件名的索引
 
-    # 清理资源
-    output.close()
-
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO images (id, data) VALUES (?, ?)",
-        (image_id, compressed_image_data),  # 存储压缩后的图像数据
-    )
-    conn.commit()
+    # 保存图片
+    output_file = folder / f"{next_index}.webp"
+    image.save(output_file, format='WEBP', quality=80)  # 调整quality值以平衡质量和大小
+    logger.info(f"图像 ID {image_id} 成功保存为 {output_file}")
 
 
-async def cache_file(msg: Message, image_id: int, conn: Connection) -> None:
+async def cache_file(msg: Message, image_id: int) -> None:
     """
-    缓存消息中的图片数据到数据库，最多只缓存两张图片。
+    缓存消息中的图片数据到文件系统，最多只缓存两张图片。
     :param msg: 消息对象
     :param image_id: 图像对应的 ID
-    :param conn: 数据库连接
     """
     semaphore = asyncio.Semaphore(2)  # 控制并发任务数量
-    max_number = config.max_bottle_pic
+    max_number = 2  # 最多处理两张图片
     async with httpx.AsyncClient() as client:
         tasks = [
-            cache_image_url(seg, client, image_id, conn, semaphore)
+            cache_image_url(seg, client, image_id, semaphore)
             for i, seg in enumerate(msg)
-            if seg.type == "image" and i <= max_number  # 限制只处理前两张图片
+            if seg.type == "image" and i < max_number  # 限制只处理前两张图片
         ]
         await asyncio.gather(*tasks)
-
 
 async def cache_image_url(
         seg: MessageSegment,
         client: httpx.AsyncClient,
         image_id: int,
-        conn: Connection,
         semaphore: asyncio.Semaphore,
 ) -> None:
     """
-    缓存单个图片 URL 到数据库。
+    缓存单个图片 URL 到文件系统。
     :param seg: 包含图片 URL 的消息段
     :param client: HTTP 客户端
     :param image_id: 图像对应的 ID
-    :param conn: 数据库连接
     :param semaphore: 控制并发任务数量的信号量
     """
     async with semaphore:
@@ -313,10 +309,10 @@ async def cache_image_url(
 
         if r.status_code != HTTPStatus.OK or not data:
             return
-        await store_image_data(image_id, data, conn)
+
+        await store_image_file(image_id, data)
         # 设置文件名时使用原始的 image_id
         seg.data = {"file": f"image_{image_id}"}
-
 
 class Bottle:
     def __init__(self, conn: Connection):
@@ -583,7 +579,9 @@ class Bottle:
 
     async def refuse_bottle(self, id: int) -> Literal[True]:
         """
-        异步拒绝待审核的漂流瓶，并将相关图片数据设置为 None。
+        异步拒绝待审核的漂流瓶，并删除相关图片文件夹及其所有文件。
+        :param id: 待拒绝的漂流瓶 ID
+        :return: 总是返回 True
         """
         # 连接到数据库
         conn = self.conn
@@ -600,18 +598,24 @@ class Bottle:
         new_state = 100
         cursor.execute(update_pending_query, (new_state, id))
 
-        # 定义更新 images 表数据的 SQL 语句
-        update_images_query = """
-        UPDATE images
-        SET data = NULL
-        WHERE id = ?;
-        """
-
-        # 更新 images 表中的数据
-        cursor.execute(update_images_query, (id,))
-
-        # 提交更改
+        # 提交更改到数据库
         conn.commit()
+
+        # 拼接目标路径
+        target_folder = image_path / str(id)
+
+        # 检查文件夹是否存在
+        if target_folder.exists() and target_folder.is_dir():
+            try:
+                # 删除文件夹及其所有内容
+                for file in target_folder.glob("*"):
+                    file.unlink()  # 删除文件
+                target_folder.rmdir()  # 删除空文件夹
+                logger.info(f"成功删除 ID 为 {id} 的图片文件夹及其内容！")
+            except Exception as e:
+                logger.error(f"删除文件夹 {target_folder} 时发生错误：{e}")
+        else:
+            logger.warning(f"ID 为 {id} 的图片文件夹不存在或不是文件夹！")
 
         return True
 
@@ -781,34 +785,37 @@ class Bottle:
 
     async def get_bottle_images(self, id: int) -> list[bytes]:
         """
-        获取图片
+        获取指定 ID 的图片数据。
+        :param id: 图片的 ID
+        :return: 图片的二进制数据列表
         """
+        # 拼接目标路径
+        image_folder = image_path / str(id)
 
-        # 创建一个 Cursor 对象
-        conn = self.conn
-        cursor = conn.cursor()
+        # 检查文件夹是否存在
+        if not image_folder.exists() or not image_folder.is_dir():
+            logger.warning(f"ID 为 {id} 的图片文件夹不存在！")
+            return []
 
-        # SQL 查询语句
-        query = "SELECT data FROM images WHERE id = ?"
+        # 获取文件夹中所有 .webp 文件
+        image_files = sorted(image_folder.glob("*.webp"))
 
-        # 执行查询
-        cursor.execute(query, (id,))
+        # 读取文件内容
+        images = []
+        for image_file in image_files:
+            try:
+                with open(image_file, "rb") as f:
+                    images.append(f.read())
+            except Exception as e:
+                logger.error(f"读取文件 {image_file} 时发生错误：{e}")
 
-        # 获取所有查询结果
-        rows = cursor.fetchall()
-
-        # 关闭 Cursor 和连接
-        cursor.close()
-
-        # 如果找到了记录，则返回 Blob 数据作为字节列表
-        if rows:
-            return [row[0] for row in rows]
-        return []
+        return images
 
 
 plugin_data = store.get_data_dir("nonebot_plugin_web_bottle")
 file_path = plugin_data / "bottle_id.txt"
-
+image_path = plugin_data / 'img'
+image_path.mkdir(parents=True, exist_ok=True)
 
 async def id_add() -> int:
     # Ensure the directory exists

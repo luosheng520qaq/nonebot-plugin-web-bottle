@@ -7,7 +7,7 @@ class Config(BaseModel):
     max_bottle_liens: int = 9  # 丢瓶子允许最多文字行数
     max_bottle_word: int = 1200  # 丢瓶子允许最多字符数量
     embedded_help: bool = True  # 开启后，丢瓶子时未添加任何内容，则返回指令帮助
-
+    cooling_time: int = 6  # 默认指令冷却 单位秒
     # 瓶子评论规区则配置
     default_nickname: str = "未知昵称"  # 定义获取昵称失败时对评论区用户默认称呼
     bottle_msg_split: bool = True  # 分离瓶子和评论区为两条独立消息
