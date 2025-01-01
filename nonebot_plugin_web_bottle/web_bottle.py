@@ -852,11 +852,11 @@ async def extract_and_join_text_from_message(message_list: list) -> str:
     return "".join(segment["data"]["text"] for segment in message_list if segment["type"] == "text")
 
 
-async def serialize_message(message: Message, id: int, conn: Connection) -> list[dict[str, Any]]:
+async def serialize_message(message: Message, id: int) -> list[dict[str, Any]]:
     for seg in message:
         if seg.type not in ("text", "image"):
             msg = "漂流瓶只支持文字和图片~"
             raise NotSupportMessageError(msg)
 
-    await cache_file(msg=message, image_id=id, conn=conn)
+    await cache_file(msg=message, image_id=id)
     return [seg.__dict__ for seg in message]

@@ -191,7 +191,7 @@ async def _(event: GroupMessageEvent, args: Message = CommandArg()):
             await throw.finish(f"丢瓶子失败啦，请不要超过{max_bottle_pic}张图片哦~")
         bid = await id_add()
         conn = data_deal.conn_bottle
-        await serialize_message(event.get_message(), bid, conn)
+        await serialize_message(event.get_message(), bid)
         bottle = Bottle(conn)
         time_info = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # TODO)): 统一规定时区 # noqa: DTZ005
         if await bottle.add_pending_bottle(bid, content, str(event.user_id), str(event.group_id), time_info):

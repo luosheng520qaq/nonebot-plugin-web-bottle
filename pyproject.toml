@@ -1,6 +1,6 @@
 [project]
 name = "nonebot_plugin_web_bottle"
-version = "1.5.0"
+version = "1.5.1"
 description = "有web的漂流瓶"
 authors = [{ name = "Xican", email = "723926109@qq.com" }]
 dependencies = [
