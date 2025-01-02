@@ -272,12 +272,12 @@ async def cache_file(msg: Message, image_id: int) -> None:
     :param image_id: 图像对应的 ID
     """
     semaphore = asyncio.Semaphore(2)  # 控制并发任务数量
-    max_number = 2  # 最多处理两张图片
+    max_number = config.max_bottle_pic  # 最多处理两张图片
     async with httpx.AsyncClient() as client:
         tasks = [
             cache_image_url(seg, client, image_id, semaphore)
             for i, seg in enumerate(msg)
-            if seg.type == "image" and i < max_number  # 限制只处理前两张图片
+            if seg.type == "image" and i < max_number+1  # 限制只处理前两张图片
         ]
         await asyncio.gather(*tasks)
 
