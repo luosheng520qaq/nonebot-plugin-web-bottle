@@ -27,7 +27,7 @@ pip install nonebot-plugin-web-bottle
 
 **Nonebot**
 ```bash
-nb plugin install nonebot-plugin-web-bottle
+nb plugin install nonebot_plugin_web_bottle
 ```
 
 # 目前实现了什么？
